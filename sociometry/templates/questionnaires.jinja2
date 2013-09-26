@@ -1,0 +1,108 @@
+{% extends "base.jinja2" %}
+{% block title %}Zpracování dotazníků{% endblock %}
+{% block body %}
+<div class="row">
+    <div class="col-md-10">
+    <h2>Nastavení přátelství</h2>
+        <table class="table table-condensed">
+            <tr>
+                <th>Jméno</th>
+                <th>&nbsp;</th>
+            </tr>
+            {% for child in children %}
+            <tr>
+                <td>{{ child.name }}</td>
+                <td><a href="{{url_for('questionnaire_input', childid=child.id) }}" class="btn btn-primary">Zpracovat dotazník</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+    {#
+<div class="modal fade" id="friendshipModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="childname">Modal title</h4>
+      </div>
+      <div class="modal-body" >
+           <form role="form" id="friendshipsform" action="/api/save">
+           {%  for child in children  %}
+                    <label class="checkbox-inline chkboxlabels" id="label{{ child.id }}">
+                        <input type="checkbox" name="friends" id="child{{ child.id }}" value="{{ child.id }}">
+                        {{ child.name }}
+                    </label>
+            {% endfor %}
+           <input type="hidden" name="childid" id="hiddenchildid" value="0">
+           </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Zavřít bez uložení</button>
+        <button type="button" class="btn btn-primary" onclick="saveFriendship();" id="saveBtn" data-loading-text="Ukládám...">Uložit změny</button>
+      </div>
+
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<script type="text/javascript">
+    function runAll(){
+        jQuery.getJSON("/api/children_in_class/"+{{ classid }}, function(data){
+            data.ids.forEach(function(value){
+                //Not working yet :-(
+            })
+        });
+
+    }
+
+    function myFunction(childid){
+        $("input[type='checkbox'][name='friends']").prop("checked",false)
+        $(".chkboxlabels").show(0);
+        $("#label"+childid).hide(0);
+
+        jQuery.getJSON("/api/child/"+childid, function(data){
+            $("#childname").html(data.name);
+            $("#hiddenchildid").prop("value",data.id);
+        });
+        jQuery.getJSON("/api/friendship_ids/"+childid, function(data){
+            $.each(data["likes"], function(key,friend){
+                $("#child"+friend).prop("checked",true)
+            });
+        });
+        $("#friendshipModal").modal()
+    }
+
+    function saveFriendship(){
+        $('#saveBtn').button('loading');
+        console.log($("#friendshipsform").serialize())
+        jQuery.post("/api/save", $("#friendshipsform").serialize()).done(function(data, textStatus, jqXHR){
+                if(data.returncode != 1){
+                    $('#saveBtn').button('reset');
+                    $('#saveBtn').button('Uložit');
+                    $.pnotify.defaults.delay = 5000;
+                $.pnotify({
+                    title: 'Neuloženo!',
+                    text: 'Uložení selhalo se zprávou: '+data.reason,
+                    type: 'error'
+                });
+                return false;
+                }
+                $('#saveBtn').button('reset');
+                $('#saveBtn').button('Uloženo');
+                $("#friendshipModal").modal('hide');
+                $.pnotify.defaults.delay = 3000;
+                $.pnotify({
+                    title: 'Úspěšně uloženo',
+                    text: 'Zadaná přátelství byla úspěšně uložena',
+                    type: 'success'
+                });
+                return true
+            })
+
+
+   }
+
+</script>
+     #}
+{% endblock %}

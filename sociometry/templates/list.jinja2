@@ -1,0 +1,53 @@
+{% extends "base.jinja2" %}
+{% block title %}Seznam tříd{% endblock %}
+{% block body %}
+<div class="row">
+    <div class="col-md-10">
+        <h1>Seznam tříd</h1>
+        <table class="table table-condensed">
+            <tr>
+                <th>Název</th>
+                <th>Vytvořeno</th>
+                <th>&nbsp;</th>
+                <th>&nbsp;</th>
+            </tr>
+            {% for class in classes %}
+            <tr>
+                    <td>{{ class.name }}</td>
+                    <td>{{ class.created|datetime }}</td>
+                    <td><a href="{{ url_for("view_class",classid=class.id) }}" class="btn btn-warning"><span class="glyphicon glyphicon-edit"></span>&nbsp;Upravit</a></td>
+                    <td><button class="btn btn-danger" onclick="return confirmDeletion({{ class.id }});"><span class="glyphicon glyphicon-remove"></span>&nbsp;Smazat</button></td>
+            </tr>
+            {% else %}
+                <tr>
+                    <td colspan="4"><em>V systému nejsou žádné třídy. Můžete je ale <a href="{{ url_for("new") }}">vytvořit.</a></em></td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+<div class="modal fade" id="deletionModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Potvrďte smazání</h4>
+      </div>
+      <div class="modal-body">
+        <p>Opravdu chcete smazat tuto třídu? Nenávratně s ní smažete všechny žáky a všechny dotazníky</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Zrušit</button>
+        <a href="#" id="deletionLink" type="button" class="btn btn-danger">Smazat!</a>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<script type="text/javascript">
+    function confirmDeletion(classid){
+        $("#deletionLink").attr('href','/delete/class/'+classid);
+        $("#deletionModal").modal();
+    }
+</script>
+{% endblock %}

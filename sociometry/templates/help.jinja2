@@ -1,0 +1,41 @@
+{% extends "base.jinja2" %}
+{% block title %}Index{% endblock %}
+{% block body %}
+<div class="container">
+    <div class="col-md-3">
+        <ul class="nav bs-sidenav">
+        <li>
+  <a href="#js-overview">Overview</a>
+  <ul class="nav">
+    <li><a href="#js-individual-compiled">Individual or compiled</a></li>
+    <li><a href="#js-data-attrs">Data attributes</a></li>
+  </ul>
+</li>
+<li>
+  <a href="#affix">Affix</a>
+  <ul class="nav">
+    <li><a href="#affix-examples">Examples</a></li>
+    <li><a href="#affix-usage">Usage</a></li>
+  </ul>
+</li>
+
+
+            </ul>
+    </div>
+    <div class="col-md-9">
+        <h1>Help!</h1>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+$('#myAffix').affix({
+    offset: {
+      top: 100
+    , bottom: function () {
+        return (this.bottom = $('.bs-footer').outerHeight(true))
+      }
+    }
+  })
+</script>
+{% endblock %}

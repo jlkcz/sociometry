@@ -1,0 +1,178 @@
+{% extends "base.jinja2" %}
+{% block title %}Přepis dotazníků pro {{ child.name }}{% endblock %}
+{% block body %}
+<div class="row">
+    <div class="col-md-12">
+    <h2>Dotazník pro: {{ child.name }}</h2>
+        <form role="form" class="form-horizontal" method="POST">
+            <table class="table table-bordered">
+                {% for line in questionnaire.friends %}
+                <tr>
+                    <td style="width:33%"><label>{{ line.label }}</label></td>
+                    <td>
+                        <select class="form-control" name="{{ line.formname }}">
+                            <option value="0" selected="selected">--- Nevyplněno ---</option>
+                            {% for mate in classmates %}
+                            <option value="{{ mate.id }}">{{ mate.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% for line in questionnaire.antipathy %}
+                <tr>
+                    <td><label>{{ line.label }}</label></td>
+                    <td>
+                        <select class="form-control" name="{{ line.formname }}">
+                            <option value="0" selected="selected">--- Nevyplněno ---</option>
+                            {% for mate in classmates %}
+                            <option value="{{ mate.id }}">{{ mate.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td><label>Sám sebe hodnotím</label></td>
+                    <td>
+                        <select class="form-control" name="selfeval">
+                            <option value="0" selected="selected">--- Nevyplněno ---</option>
+                            {% for line in questionnaire.selfeval %}
+                            <option value="{{ line.value }}">{{ line.text }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+                {% for line in questionnaire.yesnoquest %}
+                <tr>
+                    <td><label>{{ line.text }}</label></td>
+                    <td>
+                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="1">ano</label>
+                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="0">ne</label>
+                    </td>
+                </tr>
+                {% endfor %}
+            <!--here-->
+                {% for line in questionnaire.scale%}
+                <tr>
+                    <td><label>Vyber číslici, která nejlépe vyjadřuje míru tvých pocitů ve třídě:</label></td>
+                    <td style="text-align: center;">
+                        <label class="radio-inline">{{ line.mintext }}</label>
+                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="1">1</label>
+                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="2">2</label>
+                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="3">3</label>
+                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="4">4</label>
+                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="5">5</label>
+                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="6">6</label>
+                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="7">7</label>
+                        <label class="radio-inline">{{ line.maxtext }}</label>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% for line in questionnaire.traits %}
+                <tr>
+                    <td style="width:33%"><label>{{ line.text }}</label></td>
+                    <td>
+                        <select class="form-control" name="{{ line.formname }}">
+                            <option value="0" selected="selected">--- Nevyplněno ---</option>
+                            {% for mate in classmates %}
+                            <option value="{{ mate.id }}">{{ mate.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            <input type="submit" class="btn btn-success btn-lg" value="Odeslat dotazník">
+        </form>
+        <p>&nbsp;</p>
+    </div>
+</div>
+    {#
+<div class="modal fade" id="friendshipModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="childname">Modal title</h4>
+      </div>
+      <div class="modal-body" >
+           <form role="form" id="friendshipsform" action="/api/save">
+           {%  for child in children  %}
+                    <label class="checkbox-inline chkboxlabels" id="label{{ child.id }}">
+                        <input type="checkbox" name="friends" id="child{{ child.id }}" value="{{ child.id }}">
+                        {{ child.name }}
+                    </label>
+            {% endfor %}
+           <input type="hidden" name="childid" id="hiddenchildid" value="0">
+           </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Zavřít bez uložení</button>
+        <button type="button" class="btn btn-primary" onclick="saveFriendship();" id="saveBtn" data-loading-text="Ukládám...">Uložit změny</button>
+      </div>
+
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<script type="text/javascript">
+    function runAll(){
+        jQuery.getJSON("/api/children_in_class/"+{{ classid }}, function(data){
+            data.ids.forEach(function(value){
+                //Not working yet :-(
+            })
+        });
+
+    }
+
+    function myFunction(childid){
+        $("input[type='checkbox'][name='friends']").prop("checked",false)
+        $(".chkboxlabels").show(0);
+        $("#label"+childid).hide(0);
+
+        jQuery.getJSON("/api/child/"+childid, function(data){
+            $("#childname").html(data.name);
+            $("#hiddenchildid").prop("value",data.id);
+        });
+        jQuery.getJSON("/api/friendship_ids/"+childid, function(data){
+            $.each(data["likes"], function(key,friend){
+                $("#child"+friend).prop("checked",true)
+            });
+        });
+        $("#friendshipModal").modal()
+    }
+
+    function saveFriendship(){
+        $('#saveBtn').button('loading');
+        console.log($("#friendshipsform").serialize())
+        jQuery.post("/api/save", $("#friendshipsform").serialize()).done(function(data, textStatus, jqXHR){
+                if(data.returncode != 1){
+                    $('#saveBtn').button('reset');
+                    $('#saveBtn').button('Uložit');
+                    $.pnotify.defaults.delay = 5000;
+                $.pnotify({
+                    title: 'Neuloženo!',
+                    text: 'Uložení selhalo se zprávou: '+data.reason,
+                    type: 'error'
+                });
+                return false;
+                }
+                $('#saveBtn').button('reset');
+                $('#saveBtn').button('Uloženo');
+                $("#friendshipModal").modal('hide');
+                $.pnotify.defaults.delay = 3000;
+                $.pnotify({
+                    title: 'Úspěšně uloženo',
+                    text: 'Zadaná přátelství byla úspěšně uložena',
+                    type: 'success'
+                });
+                return true
+            })
+
+
+   }
+
+</script>
+     #}
+{% endblock %}

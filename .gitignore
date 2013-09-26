@@ -1,0 +1,5 @@
+.idea
+venv
+*~
+sociometry.db
+*.pyc

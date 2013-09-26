@@ -1,0 +1,139 @@
+    $.getJSON("{{ url_for('api_diagram_data', classid=classid, type=type) }}", function(data, textStatus, jqXHR){
+        var config = data;
+        //helper function for randomly distributing children on graph
+        function randompoint(){
+            return g.point(Math.round(Math.random()*1000),Math.round(Math.random()*1000))
+        }
+
+
+        //creats new orbit a puts it on graph
+        function ring(x, y, diameter, num){
+
+            var cell = new joint.shapes.sm.Ring({
+                position: { x: x, y: y },
+                size: { width: diameter, height: diameter },
+                attrs: {
+                        ".label":{"text":num, fill:"#cccccc", "font-size":22, transform:"scale(2)"}
+                }
+
+            });
+            graph.addCell(cell);
+            return cell;
+        };
+
+        //creates new child/pupil and puts him on graph
+        function child(diameter, label, gender) {
+            //orbit to where we can place our child
+            var orbit = g.ellipse(g.point(centerpoint.x-20,centerpoint.y-20),diameter,diameter)
+            //Count random place to put it
+            var mypoint = orbit.intersectionWithLineFromCenterToPoint(randompoint())
+
+            //var test1 = child(mypoint.x,mypoint.y,50,'test1');
+            if (gender == 1){
+                color = "#cd0074"
+            }
+            else {
+                color = "#06266F"
+            }
+            var cell = new joint.shapes.sm.Child({
+                position: { x: mypoint.x, y: mypoint.y },
+                size: { width: 40, height: 40 },
+                attrs: { text : { text: label, fill:color, "font-size": "16pt" }, circle: {stroke:color, "stroke-width":"4"}},
+                orbit: diameter
+            });
+            graph.addCell(cell);
+            return cell;
+        };
+
+        //inserts asymmetrical link between subjects (source --likes--> target)
+        function oneWayLink(source, target) {
+
+            var cell = new joint.shapes.sm.OneWay({
+                source: { id: source.id },
+                target: { id: target.id },
+                type: "sm.OneWay"
+                //labels: [{ position: .5, attrs: { text: { text: label || '', 'font-weight': 'bold' } } }]
+                //vertices: vertices || []
+            });
+            graph.addCell(cell);
+            return cell;
+        }
+
+        //inserts symmetrical link between subjects (source <------> target)
+        function twoWayLink(source, target) {
+
+            var cell = new joint.shapes.sm.TwoWay({
+                source: { id: source.id },
+                target: { id: target.id },
+                type: "sm.TwoWay"
+                //labels: [{ position: .5, attrs: { text: { text: label || '', 'font-weight': 'bold' } } }]
+                //vertices: vertices || []
+            });
+            graph.addCell(cell);
+            return cell;
+        }
+
+        //Counts appropriate graph size
+        function countCenter(orbits){
+            //size of the most outter orbit + some margin
+            var size = orbits*100 + 50;
+            if(size < 700){
+                width = 700/2;
+                height = size/2
+            }
+            else{
+                width = size/2;
+                height = size/2;
+            }
+            return g.point((width)+20, (height)+20)
+        }
+
+        //puts all orbits on graph
+        function makeOrbits(orbits){
+            var realorbits = []
+
+            for (var i=0;i<orbits;i++){
+                realorbits[i] = ring(centerpoint.x, centerpoint.y, (i+1)*100, orbits-i)
+            }
+            return realorbits
+        }
+
+        //puts all children on graph
+        function makeChildren(children){
+            var ret_children = []
+            for(var i= 0; i<children.length;i++){
+                var diameter = (children[i]["orbit"]+1)*50;
+                var mychild = child(diameter,children[i]["classid"],children[i]["gender"])
+                ret_children[children[i]["classid"]] = mychild;
+            }
+            return ret_children
+        }
+
+        //puts all one way links on graph
+        function makeOneWayLinks(links, children_list){
+            var ret_links = []
+            for(var i= 0;i<links.length;i++){
+                var who = links[i]["who"];
+                var likes = links[i]["likes"];
+                ret_links[i] = oneWayLink(children_list[who], children_list[likes])
+            }
+            return ret_links
+        }
+
+        //puts all two way links on graph
+        function makeTwoWayLinks(links, children_list){
+            var ret_links = []
+            for(var i= 0;i<links.length;i++){
+                var who = links[i]["who"];
+                var likes = links[i]["likes"];
+                ret_links[i] = twoWayLink(children_list[who], children_list[likes])
+            }
+            return ret_links
+        }
+
+
+        var orbits = makeOrbits(config.orbits);
+        var children = makeChildren(config.children);
+        var onewaylinks = makeOneWayLinks(config.onewaylinks, children)
+        var twowaylinks = makeTwoWayLinks(config.twowaylinks, children)
+    })

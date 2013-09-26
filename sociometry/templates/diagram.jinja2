@@ -1,0 +1,156 @@
+{% extends "base.jinja2" %}
+{% block title %}Diagram{% endblock %}
+{% block specialloads %}
+    <script src="{{url_for('static',filename='js/joint.js')}}"></script>
+    <script src="{{url_for('static',filename='js/joint.shapes.sociometry.js')}}"></script>
+    <link type="text/javascript" href="{{url_for('static',filename='css/joint.css')}}">
+    <style type="text/css">
+        #paper{
+            "min-width":800px;
+            "text-align":center;
+        }
+    </style>
+{% endblock %}
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-2">
+            <button class="btn btn-default btn-block btn-primary" id="saveButton"><span class="glyphicon glyphicon-floppy-disk"</span>&nbsp;Uložit</button>
+            <button class="btn btn-default btn-block btn-primary" id="loadButton"><span class="glyphicon glyphicon-floppy-open"</span>&nbsp;Načíst</button>
+            <button class="btn btn-default btn-block btn-primary" onclick="downloadAsImage();"><span class="glyphicon glyphicon-download-alt"</span>&nbsp;Obrázek</button>
+        </div>
+        <div class="col-md-10">
+            <div id="paper">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+$(document).ready(function(){
+        /*
+        * HERE STARTS THE FUN!!
+        */
+
+        //Counts appropriate graph size
+        function countCenter(orbits){
+            //size of the most outter orbit + some margin
+            var size = orbits*100 + 50;
+            if(size < 700){
+                width = 700/2;
+                height = size/2
+            }
+            else{
+                width = size/2;
+                height = size/2;
+            }
+            return g.point((width)+20, (height)+20)
+        }
+
+        //Centerpoint for our whole app
+        var centerpoint = countCenter({{ orbits }});
+
+        //View object making sure that moving can be done only in circles
+        var ConstraintElementView = joint.dia.ElementView.extend({
+
+            centerpoint: centerpoint,
+            pointerdown: function(evt, x, y) {
+                //each moved object has attribute orbit with diameter of revolvment
+                var diameter = this.model.get('orbit')
+                //elipse on which is object allowed to be
+                var shape = g.ellipse(this.centerpoint, diameter, diameter);
+                var position = this.model.get('position');
+                var size = this.model.get('size');
+                //find center of the circle so we can place it on our orbit
+                var center = g.rect(position.x, position.y, size.width, size.height).center();
+                var intersection = shape.intersectionWithLineFromCenterToPoint(center);
+            joint.dia.ElementView.prototype.pointerdown.apply(this, [evt, intersection.x, intersection.y]);
+        },
+        pointermove: function(evt, x, y) {
+            var diameter = this.model.get('orbit')
+            var shape = g.ellipse(this.centerpoint, diameter, diameter);
+            var intersection = shape.intersectionWithLineFromCenterToPoint(g.point(x, y));
+            joint.dia.ElementView.prototype.pointermove.apply(this, [evt, intersection.x, intersection.y]);
+        }
+    });
+
+
+        //creating graph
+        //this boy contains everything
+        var graph = new joint.dia.Graph;
+
+        //area for our stuff
+        var paper = new joint.dia.Paper({
+            el: $('#paper'),
+            width: centerpoint.x*2,
+            height: centerpoint.x*2,
+            gridSize: 1,
+            model: graph,
+            elementView: ConstraintElementView
+        });
+
+
+
+    {% if not loader %}
+        {% include "newdiagram.jinja2" with context %}
+    {% else %}
+        loadIt();
+    {% endif %}
+
+
+    $("#saveButton").click(function(){
+          $.ajax({
+            type: "POST",
+            url: "{{ url_for("api_save_graph",classid=classid,type=type)}}",
+            //data: JSON.stringify(graph.toJSON()),
+            data: JSON.stringify(graph.toJSON()),
+            contentType: "application/json; charset=utf-8",
+            success: function(msg){
+                  toastr["success"]("Úspěšně uloženo")
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                  console.log(XMLHttpRequest);
+                  console.log(textStatus);
+                  console.log(errorThrown);
+                  toastr["error"]("Při ukládání se něco pokazilo: "+errorThrown);
+            }
+        });
+    });
+
+    function loadIt(){
+        $.getJSON("{{ url_for("api_get_last_graph",classid=classid,type=type) }}", function(data, textStatus, jqXHR){
+            if(textStatus == "success"){
+                    graph.clear()
+                    console.log(data)
+                    graph.fromJSON(data)
+                    toastr["success"]("Načteno!")
+                }
+            else {
+                toastr["error"]("Načítání selhalo")
+            }
+
+        });
+    }
+
+    $("#loadButton").click(function(){
+        var isUserOk = window.confirm("Opravdu chcete načíst poslední uloženou verzi? Vaše změny se smažou!")
+        if(!isUserOk){
+            return false;
+        }
+        loadIt();
+
+    });
+
+});
+
+
+
+function downloadAsImage(){
+    var svg = document.getElementById("paper").innerHTML;
+    document.write('<img src="data:image/svg+xml;base64,'+window.btoa(svg)+'">');
+}
+
+
+</script>
+{% endblock %}

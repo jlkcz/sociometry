@@ -1,0 +1,37 @@
+body {
+  padding-top: 55px;
+}
+.starter-template {
+  padding: 40px 15px;
+  text-align: center;
+}
+
+.table > thead > tr > td.female,
+.table > tbody > tr > td.female,
+.table > tfoot > tr > td.female,
+.table > thead > tr > th.female,
+.table > tbody > tr > th.female,
+.table > tfoot > tr > th.female,
+.table > thead > tr.female > td,
+.table > tbody > tr.female > td,
+.table > tfoot > tr.female > td,
+.table > thead > tr.female > th,
+.table > tbody > tr.female > th,
+.table > tfoot > tr.female > th {
+  background-color: #f5b3ea;
+}
+
+.table > thead > tr > td.male,
+.table > tbody > tr > td.male,
+.table > tfoot > tr > td.male,
+.table > thead > tr > th.male,
+.table > tbody > tr > th.male,
+.table > tfoot > tr > th.male,
+.table > thead > tr.male > td,
+.table > tbody > tr.male > td,
+.table > tfoot > tr.male > td,
+.table > thead > tr.male > th,
+.table > tbody > tr.male > th,
+.table > tfoot > tr.male > th {
+  background-color: #a0cef5;
+}

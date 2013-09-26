@@ -1,0 +1,22 @@
+{% extends "base.jinja2" %}
+{% block title %}Vytvořit nový sociogram{% endblock %}
+{% block body %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>{{ someval }}</h2>
+        <h4>Vytvoření nového</h4>
+        <form role="form" method="POST">
+            <div class="form-group">
+                <label for="name">Název</label>
+                <input type="text" class="form-control" id="name" name="name" placeholder="Název třídy">
+            </div>
+            <div class="form-group">
+                <label for="childlist">Seznam dětí</label>
+                <textarea id="childlist" name="childlist" class="form-control" rows="15"></textarea>
+                <p class="help-block">Na každém řádku jedno jméno</p>
+              </div>
+              <button type="submit" class="btn btn-default">Vytvořit</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
