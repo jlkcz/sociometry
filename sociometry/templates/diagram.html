@@ -1,4 +1,4 @@
-{% extends "base.jinja2" %}
+{% extends "base.html" %}
 {% block title %}Diagram{% endblock %}
 {% block specialloads %}
     <script src="{{url_for('static',filename='js/joint.js')}}"></script>
@@ -15,9 +15,9 @@
 <div class="container">
     <div class="row">
         <div class="col-md-2">
-            <button class="btn btn-default btn-block btn-primary" id="saveButton"><span class="glyphicon glyphicon-floppy-disk"</span>&nbsp;Uložit</button>
-            <button class="btn btn-default btn-block btn-primary" id="loadButton"><span class="glyphicon glyphicon-floppy-open"</span>&nbsp;Načíst</button>
-            <button class="btn btn-default btn-block btn-primary" onclick="downloadAsImage();"><span class="glyphicon glyphicon-download-alt"</span>&nbsp;Obrázek</button>
+            <button class="btn btn-default btn-block btn-primary" id="saveButton"><span class="glyphicon glyphicon-floppy-disk"></span>&nbsp;Uložit</button>
+            <button class="btn btn-default btn-block btn-primary" id="loadButton"><span class="glyphicon glyphicon-floppy-open"></span>&nbsp;Načíst</button>
+            <button class="btn btn-default btn-block btn-primary" onclick="downloadAsImage();"><span class="glyphicon glyphicon-download-alt"></span>&nbsp;Obrázek</button>
         </div>
         <div class="col-md-10">
             <div id="paper">
@@ -93,7 +93,7 @@ $(document).ready(function(){
 
 
     {% if not loader %}
-        {% include "newdiagram.jinja2" with context %}
+        {% include "newdiagram.html" with context %}
     {% else %}
         loadIt();
     {% endif %}

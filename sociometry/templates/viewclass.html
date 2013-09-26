@@ -1,4 +1,4 @@
-{% extends "base.jinja2" %}
+{% extends "base.html" %}
 {% block title %}Nastavit pohlaví{% endblock %}
 {% block body %}
 <div class="row">
@@ -37,7 +37,7 @@
                     <form role="form" id="editClassForm">
                         <div class="form-group">
                             <label for="name">Název</label>
-                            <input type="text" class="form-control" id="name" name="name" placeholder="Název třídy" value="{{ classdata.name }}">
+                            <input type="text" class="form-control" id="name" name="name" placeholder="Název třídy" value='{{ classdata.name }}'>
                         </div>
                         <button type="submit" id="editClassButton" class="btn btn-primary">Upravit</button>
                     </form>
@@ -142,7 +142,6 @@
     }
 
     $("#editClassForm").on('submit', function(e){
-        alert("Hey!");
         e.preventDefault();
         $.post( "{{ url_for("api_edit_class", classid=classdata.id) }}", $( "#editClassForm" ).serialize(), function(){
             toastr["success"]("Úspěšně změněno")

@@ -6,6 +6,7 @@ import datetime
 import sqlite3
 from sqlite3 import OperationalError
 
+
 app = Flask("sociometry")
 app.secret_key = 'jlkczisdabestwithverywrongsecretkey'
 DATABASE = "sociometry.db"
@@ -18,6 +19,13 @@ def connect_to_database():
     conn.execute("PRAGMA foreign_keys = ON;")
     conn.commit()
     return conn
+
+
+def init_db():
+    with app.open_resource('db.sql') as f:
+            print("creating DB");
+            g.db.cursor().executescript(f.read())
+            g.db.commit()
 
 
 @app.before_request
@@ -48,13 +56,6 @@ def redirect_url(url=None, **kwargs):
     if url is not None:
         return url_for(url, **kwargs)
     return request.args.get('next') or request.referrer or url_for("index")
-
-
-def init_db():
-    with app.open_resource('db.sql') as f:
-            print("creating DB")
-            g.db.cursor().executescript(f.read())
-            g.db.commit()
 
 
 #define Jinja2 filter datetime (SQLite has no reasonable way to work with dates)

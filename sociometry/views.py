@@ -8,18 +8,18 @@ from sqlite3 import IntegrityError
 
 @app.route("/")
 def index():
-    return render_template("index.jinja2")
+    return render_template("index.html")
 
 
 @app.route("/list")
 def list():
     classes = g.curr.execute("SELECT * FROM classes ORDER BY created DESC").fetchall()
-    return render_template("list.jinja2", classes=classes)
+    return render_template("list.html", classes=classes)
 
 
 @app.route("/help")
 def help():
-    return render_template("help.jinja2")
+    return render_template("help.html")
 
 
 @app.route("/favicon.ico")
@@ -36,7 +36,7 @@ def new():
             return redirect(url_for("manage_gender", classid=classid))
         else:
             flash(u"Chybí název třídy nebo seznam žáků", 'danger')
-    return render_template("new.jinja2")
+    return render_template("new.html")
 
 
 @app.route("/add/children/<int:classid>", methods=["POST"])
@@ -67,7 +67,7 @@ def manage_gender(classid):
         flash(u"Taková třída neexistuje!", "danger")
         return redirect(url_for("index"))
     children = m.ChildrenModel.getByClass(classid)
-    return render_template("gender.jinja2", class_name=classdata["name"], children=children, classid=classid)
+    return render_template("gender.html", class_name=classdata["name"], children=children, classid=classid)
 
 
 @app.route("/input/<int:childid>", methods=["POST", "GET"])
@@ -87,7 +87,7 @@ def questionnaire_input(childid):
 
     cm_data = g.curr.execute("SELECT id,name FROM children WHERE class=? AND id!=? ORDER BY gender, name", [child_data["class"], childid]).fetchall()
     classmates = [{"id": child["id"], "name": child["name"]} for child in cm_data]
-    return render_template("questionnaire_input.jinja2", child=child_data, classmates=classmates, questionnaire=m.Questionnaire())
+    return render_template("questionnaire_input.html", child=child_data, classmates=classmates, questionnaire=m.Questionnaire())
 
 
 @app.route("/delete/<stuff>/<int:stuffid>")
@@ -114,12 +114,12 @@ def view_class(classid):
     classdata = m.ClassModel.getData(classid)
     children = m.ChildrenModel.getByClass(classid)
     completion = m.ClassModel.getCompletionPercentage(classid)
-    return render_template("viewclass.jinja2", classdata=classdata, children=children, completion=completion)
+    return render_template("viewclass.html", classdata=classdata, children=children, completion=completion)
 
 
 @app.route("/diagram/<int:classid>/<type>")
 def diagram(classid, type):
     orbits = m.QuestionnaireModel.getOrbitCount(classid, type)
     load = m.DiagramModel.hasSavedDiagram(classid,type)
-    return render_template("diagram.jinja2", classid=classid, type=type, loader=load, orbits=orbits)
+    return render_template("diagram.html", classid=classid, type=type, loader=load, orbits=orbits)
 
