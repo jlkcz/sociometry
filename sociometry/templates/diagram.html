@@ -122,7 +122,6 @@ $(document).ready(function(){
         $.getJSON("{{ url_for("api_get_last_graph",classid=classid,type=type) }}", function(data, textStatus, jqXHR){
             if(textStatus == "success"){
                     graph.clear()
-                    console.log(data)
                     graph.fromJSON(data)
                     toastr["success"]("Načteno!")
                 }
@@ -148,9 +147,25 @@ $(document).ready(function(){
 
 function downloadAsImage(){
     var svg = document.getElementById("paper").innerHTML;
-    document.write('<img src="data:image/svg+xml;base64,'+window.btoa(svg)+'">');
+
+    $.ajax({
+    url: "{{ url_for("api_svg_to_png") }}",
+    type: "POST",
+    data: {"pcontent": svg, "filename": "{{classid}}_{{ type }}" },
+    success: function (data) {
+        window.location = "/get/png/"+data.name
+    },
+    error: function(jqXHR,error, errorThrown) {
+        if(jqXHR.status){
+            //alert(jqXHR.responseText);
+        }else{
+            toastr["error"]("Někde se stala chyba!")
+        }
+    }
+});
 }
 
 
 </script>
+
 {% endblock %}

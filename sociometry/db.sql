@@ -11,7 +11,9 @@ CREATE TABLE children (
 CREATE TABLE classes (
   id INTEGER PRIMARY KEY,
   name TEXT,
-  created NUMERIC
+  created NUMERIC,
+  closed NUMERIC NOT NULL DEFAULT 0,
+  missing NUMERIC NOT NULL DEFAULT 0
 );
 
 CREATE TABLE friendships (
@@ -82,5 +84,11 @@ CREATE TABLE diagrams (
   FOREIGN KEY(class) REFERENCES classes(id)
 );
 
+CREATE TABLE tempfiles (
+  id INTEGER PRIMARY KEY,
+  filename TEXT,
+  hash TEXT,
+  data BLOB
+);
 
 COMMIT;

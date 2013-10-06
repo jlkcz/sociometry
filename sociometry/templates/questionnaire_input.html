@@ -19,6 +19,9 @@
                     </td>
                 </tr>
                 {% endfor %}
+                <tr>
+                    <td colspan="2"><hr></td>
+                </tr>
                 {% for line in questionnaire.antipathy %}
                 <tr>
                     <td><label>{{ line.label }}</label></td>
@@ -33,6 +36,9 @@
                 </tr>
                 {% endfor %}
                 <tr>
+                    <td colspan="2"><hr></td>
+                </tr>
+                <tr>
                     <td><label>Sám sebe hodnotím</label></td>
                     <td>
                         <select class="form-control" name="selfeval">
@@ -43,6 +49,9 @@
                         </select>
                     </td>
                 </tr>
+                <tr>
+                    <td colspan="2"><hr></td>
+                </tr>
                 {% for line in questionnaire.yesnoquest %}
                 <tr>
                     <td><label>{{ line.text }}</label></td>
@@ -52,7 +61,9 @@
                     </td>
                 </tr>
                 {% endfor %}
-            <!--here-->
+                <tr>
+                    <td colspan="2"><hr></td>
+                </tr>
                 {% for line in questionnaire.scale%}
                 <tr>
                     <td><label>Vyber číslici, která nejlépe vyjadřuje míru tvých pocitů ve třídě:</label></td>
@@ -69,6 +80,9 @@
                     </td>
                 </tr>
                 {% endfor %}
+                <tr>
+                    <td colspan="2"><hr></td>
+                </tr>
                 {% for line in questionnaire.traits %}
                 <tr>
                     <td style="width:33%"><label>{{ line.text }}</label></td>
@@ -81,6 +95,11 @@
                         </select>
                     </td>
                 </tr>
+                {% if loop.index == 5 %}
+                <tr>
+                    <td colspan="2"><hr></td>
+                </tr>
+                {% endif %}
                 {% endfor %}
             </table>
             <input type="submit" class="btn btn-success btn-lg" value="Odeslat dotazník">

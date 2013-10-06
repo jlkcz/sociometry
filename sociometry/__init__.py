@@ -1,14 +1,14 @@
 #!venv/bin/python
 # -*- coding: utf8 -*-
 from __future__ import print_function, generators
-from flask import Flask, url_for, render_template, request, g, flash, redirect, jsonify
+from flask import Flask, url_for, request, g
 import datetime
 import sqlite3
 from sqlite3 import OperationalError
 
 
 app = Flask("sociometry")
-app.secret_key = 'jlkczisdabestwithverywrongsecretkey'
+app.secret_key = 'jlkczisthebestwithverywrongsecretkey'
 DATABASE = "sociometry.db"
 
 
@@ -23,7 +23,6 @@ def connect_to_database():
 
 def init_db():
     with app.open_resource('db.sql') as f:
-            print("creating DB");
             g.db.cursor().executescript(f.read())
             g.db.commit()
 
@@ -33,16 +32,13 @@ def get_db():
     db = getattr(g, 'db', None)
     if db is None:
         g.db = connect_to_database()
-        #g.cur is legacy and will be removed
-        g.curr = g.db.cursor()
-        g.cur = g.curr
+        g.cur = g.db.cursor()
         #Check if we have DB already created
         try:
             g.db.execute("SELECT * FROM children")
         except OperationalError:
             init_db()
     return db
-
 
 
 @app.teardown_appcontext

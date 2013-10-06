@@ -1,24 +1,55 @@
 {% extends "base.html" %}
-{% block title %}Nastavit pohlaví{% endblock %}
+{% block title %}Přehled třídy {{ classdata.name }}{% endblock %}
 {% block body %}
 <div class="row">
     <div class="col-md-12">
-        <h2>Editace třídy "{{ classdata.name }}"</h2>
+        <h2>Přehled třídy {{ classdata.name }}</h2>
           <div class="bs-example bs-example-tabs">
             <ul id="myTab" class="nav nav-tabs">
                 <li class="active"><a href="#overview" data-toggle="tab">Přehled</a></li>
+                {% if not classdata.closed %}
                 <li><a href="#pupils" data-toggle="tab">Žáci</a></li>
                 <li><a href="#edit" data-toggle="tab">Upravit</a></li>
                 <li><a href="#newpupils" data-toggle="tab">Přidat žáky</a></li>
                 <li><a href="#gender" data-toggle="tab">Upravit pohlaví</a></li>
+                {% endif %}
             </ul>
             <div id="myTabContent" class="tab-content">
                 <div class="tab-pane fade in active" id="overview">
-                    <h3>Přehled</h3>
                     <div class="row">
                         <div class="col-md-6">
-                            <p><a href="{{ url_for("diagram",type="friend",classid=classdata.id) }}" class="btn btn-default">Zobrazit diagram přátel</a></p>
-                            <p><a href="{{ url_for("diagram",type="antipathy",classid=classdata.id) }}" class="btn btn-default">Zobrazit diagram antipatií</a></p>
+                        <h3>Informace</h3>
+                            {% if classdata.closed %}
+                                <p>Třída je uzavřena a již lze pracovat s výstupy.</p>
+                                <p>Můžete si vytvořit sociogramy:</p>
+                                <a href="{{ url_for("diagram",type="friend",classid=classdata.id) }}" class="btn btn-default btn-block">
+                                    <span class="glyphicon glyphicon-heart"></span>&nbsp;Sociogram přátel</a>
+                                <a href="{{ url_for("diagram",type="antipathy",classid=classdata.id) }}" class="btn btn-default btn-block">
+                                    <span class="glyphicon glyphicon-flash"></span>&nbsp;Sociogram antipatií</a>
+                                <p>&nbsp;</p>
+                                <p>Stáhnout zpracovaná data v Excelu:</p>
+                                <a href="{{ url_for("export_class", classid=classdata.id) }}" class="btn btn-default btn-block">
+                                    <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Stáhnout výstup</a>
+                                <p class="help-block">Ve výstupu nejsou zahrnuty sociogramy, ty musíte stáhnout ručně.</p>
+                                <p>&nbsp;</p>
+                                <p>Otevřít třídu a provést úpravy.</p>
+                                <button class="btn btn-block btn-default" onclick="confirmReopening();">
+                                    <span class="glyphicon glyphicon-folder-open"></span>&nbsp;Otevřít třídu</span>
+                                </button>
+                                <p class="help-block">Otevřením třídy smažete všechny existující diagramy!</p>
+
+                            {% elif completion == 100 %}
+                                <p class="help-block">Nyní můžete třídu uzavřít. Tím stvrzujete, že třída má zadána všechna potřebná data. Po uzavření třídy vám budou dostupné výstupy jako sociogramy a kompletní Excel výstup</p>
+                                <p><a href="{{ url_for("close_class", classid=classdata.id) }}" class="btn btn-warning">Uzavřít třídu</a></p>
+                                <p class="help-block"><small>
+                                    Třídu budete moci znovu otevřít a upravit. Tímto krokem ale přijdete o uložené sociogramy, protože jakékoliv úpravy zneplatní uložené sociogramy
+                                </small></p>
+                            {% else %}
+                                <p>Vaše třída je nyní uložena v systému a čeká, až ji naplníte daty. Ty můžete vyplňovat buď postupně pomocí tlačítek na pravé straně obrazovky, nebo spustit průvodce přidáváním, který vám bude zobrazovat jeden dotazník po druhém</p>
+                                <div class="alert alert-warning"><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;<strong>Pozor!</strong> Dotazníky musíte vyplnit i za žáky, kteří dotazník nevyplňovali! Jednoduše ho nechte prázdný.</div>
+                                <p>Jakmile budou všechny dotazníky vyplněny, bude vám umožněno vytvářet sociogramy a data exportovat</p>
+                            {% endif %}
+
                         </div>
                         <div class="col-md-6">
                             <h3>Přepsaných dotazníků: {{ '%d'|format(completion) }}%</h3>
@@ -33,11 +64,16 @@
                         </div>
                     </div>
                 </div>
+            {% if not classdata.closed %}
                 <div class="tab-pane fade in" id="edit">
-                    <form role="form" id="editClassForm">
-                        <div class="form-group">
+                    <form role="form" id="editClassForm" method="POST" action="{{ url_for("modify_class", classid=classdata.id) }}">
+                    <div class="form-group">
                             <label for="name">Název</label>
                             <input type="text" class="form-control" id="name" name="name" placeholder="Název třídy" value='{{ classdata.name }}'>
+                        </div>
+                        <div class="form-group">
+                            <label for="name">Počet nezúčastněných žáků</label>
+                            <input type="number" class="form-control" id="missing" name="missing" placeholder="0" value='{{ classdata.missing }}'>
                         </div>
                         <button type="submit" id="editClassButton" class="btn btn-primary">Upravit</button>
                     </form>
@@ -90,6 +126,7 @@
                         <button type="submit" class="btn btn-default">Nastavit pohlaví</button>
                     </form>
                 </div>
+          {% endif %}
             </div>
         </div><!-- /example -->
     </div>
@@ -111,7 +148,6 @@
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
-
 <div class="modal fade" id="questDeletionModal">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -130,6 +166,24 @@
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
+<div class="modal fade" id="reopeningModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Potvrďte znovuotevření třídy</h4>
+      </div>
+      <div class="modal-body">
+        <p>Opravdu chcete třídu otevřít? Smažete tím všechny uložené diagramy!</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Zrušit</button>
+        <a href="{{ url_for("reopen_class", classid=classdata.id) }}" type="button" class="btn btn-danger">Otevřít!</a>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
 <script type="text/javascript">
     function confirmDeletion(childid){
         $("#deletionLink").attr('href','/delete/child/'+childid);
@@ -141,12 +195,9 @@
         $("#questDeletionModal").modal();
     }
 
-    $("#editClassForm").on('submit', function(e){
-        e.preventDefault();
-        $.post( "{{ url_for("api_edit_class", classid=classdata.id) }}", $( "#editClassForm" ).serialize(), function(){
-            toastr["success"]("Úspěšně změněno")
-        });
-        return false;
-    })
+    function confirmReopening(){
+        $("#reopeningModal").modal();
+    }
+
 </script>
 {% endblock %}

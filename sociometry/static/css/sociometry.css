@@ -35,3 +35,16 @@ body {
 .table > tfoot > tr.male > th {
   background-color: #a0cef5;
 }
+
+.help-affix {
+    background-color: #eee;
+    position: fixed;
+}
+
+.dashboard-cell {
+    border: 2px solid grey;
+    border-radius: 1em;
+    margin:0.3em;
+    padding: 0.5em;
+}
+

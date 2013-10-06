@@ -1,10 +1,15 @@
 # -*- coding: utf8 -*-
-from __future__ import division
+u"""Contains model (DB) classes (static methods). """
+#Naming conventions are bit cranky (my PHP skills are interfering, but I am working on it)
+
+from __future__ import division, print_function
 from flask import g
 import time
+import hashlib
 
 
 class BaseDb(object):
+    u"""Abstract class providing transaction operations"""
     @staticmethod
     def begin():
         g.db.execute("BEGIN TRANSACTION;")
@@ -22,9 +27,9 @@ class ClassModel(BaseDb):
     u"""Class for manipulating with classes in db"""
 
     @staticmethod
-    def new(name, names_list):
+    def new(name, names_list, missing=0):
         ClassModel.begin()
-        g.cur.execute("INSERT INTO classes (name, created) VALUES (?,?)", [name, time.time()])
+        g.cur.execute("INSERT INTO classes (name, created, missing) VALUES (?,?,?)", [name, time.time(), missing])
         classid = g.cur.lastrowid
         ChildrenModel.addChildren(classid, names_list)
         ClassModel.commit()
@@ -43,13 +48,38 @@ class ClassModel(BaseDb):
         return (data[1]/data[0])*100
 
     @staticmethod
+    def exists(classid):
+        if g.cur.execute("SELECT * FROM classes WHERE id=?", [classid]).fetchone() is None:
+            return False
+        return True
+
+    @staticmethod
     def getAll():
         return g.cur.execute("SELECT * FROM classes ORDER BY created DESC").fetchall()
 
     @staticmethod
-    def rename(classid, newname):
+    def isClosed(classid):
+        return bool(g.cur.execute("SELECT closed FROM classes WHERE id=?", [classid]).fetchone()[0])
+
+    @staticmethod
+    def close(classid):
         ClassModel.begin()
-        g.cur.execute("UPDATE classes SET name=? WHERE id=?", [newname, classid])
+        g.cur.execute("UPDATE classes SET closed=1 WHERE id=?", [classid])
+        ClassModel.commit()
+        return True
+
+    @staticmethod
+    def reopen(classid):
+        ClassModel.begin()
+        g.cur.execute("DELETE FROM diagrams WHERE class=?", [classid])
+        g.cur.execute("UPDATE classes SET closed=0 WHERE id=?", [classid])
+        ClassModel.commit()
+        return True
+
+    @staticmethod
+    def modify(classid, newname, missing=0):
+        ClassModel.begin()
+        g.cur.execute("UPDATE classes SET name=?, missing=? WHERE id=?", [newname, missing, classid])
         ClassModel.commit()
         return True
 
@@ -57,6 +87,8 @@ class ClassModel(BaseDb):
     def delete(classid):
         ClassModel.begin()
         g.cur.execute("DELETE FROM friendships WHERE who IN (SELECT id FROM children WHERE class=?)", [classid])
+        g.cur.execute("DELETE FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=?)", [classid])
+        g.cur.execute("DELETE FROM diagrams WHERE class=?", [classid])
         g.cur.execute("DELETE FROM children WHERE class=?", [classid])
         g.cur.execute("DELETE FROM classes WHERE id=?", [classid])
         ClassModel.commit()
@@ -68,6 +100,12 @@ class ChildrenModel(BaseDb):
     @staticmethod
     def getData(childid):
         return g.cur.execute("SELECT * FROM children WHERE id=?", [childid]).fetchone()
+
+    @staticmethod
+    def exists(childid):
+        if ChildrenModel.getData(childid) is None:
+            return False
+        return True
 
     @staticmethod
     def addChildren(classid, names_list):
@@ -99,12 +137,17 @@ class ChildrenModel(BaseDb):
     def getByClass(classid):
         return g.cur.execute("""SELECT children.id AS id,class,name,gender,classid,questionnaires.id AS qid
                              FROM children LEFT JOIN questionnaires ON questionnaires.child = children.id
-                             WHERE class=?""", [classid]).fetchall()
+                             WHERE class=? ORDER BY classid""", [classid]).fetchall()
 
     @staticmethod
     def delete(childid):
         ChildrenModel.begin()
-        childclass = g.cur.execute("SELECT class FROM children WHERE id=?", [childid]).fetchone()["class"]
+        try:
+            childclass = g.cur.execute("SELECT class FROM children WHERE id=?", [childid]).fetchone()["class"]
+        except TypeError:
+            return False
+        if ClassModel.isClosed(childclass):
+            return False
         g.cur.execute("DELETE FROM children WHERE id=?", [childid])
         ChildrenModel.resetIds(childclass)
         ChildrenModel.commit()
@@ -140,14 +183,13 @@ class QuestionnaireModel(BaseDb):
         QuestionnaireModel.begin()
         formdata["child"] = childid
 
-        q = Questionnaire()
         #For unchecked checkboxes
-        for key in q.allkeys:
+        for key in Questionnaire.allkeys:
             if key not in formdata.keys():
                 formdata[key] = None
 
         #for not filled selects
-        for key in q.zeroisnullkeys:
+        for key in Questionnaire.zeroisnullkeys:
             if formdata[key] == '0':
                 formdata[key] = None
 
@@ -221,13 +263,12 @@ class QuestionnaireModel(BaseDb):
                                     antipathy2=q.child OR antipathy3=q.child) AS count
                                     FROM questionnaires AS q
                                     WHERE child IN (SELECT id FROM children WHERE class=?);""", [classid]).fetchall()
-
         else:
-            #Nor friend, nor antipathy diagram
+            #Not friend, nor antipathy diagram
             return None
 
         #Having N friends means being on Orbit X
-        #orbit_dict is conversion for N:X
+        #orbit_dict is conversion for N:
         temp = [value[0] for value in values]
         temp.sort()
         temp.reverse()
@@ -243,6 +284,63 @@ class QuestionnaireModel(BaseDb):
             )
 
         return return_dict
+
+    @staticmethod
+    def getQualitativeData(classid, order_by_hierarchy=None):
+        if order_by_hierarchy is None:
+            order_by = "ORDER BY classid ASC"
+        elif order_by_hierarchy is True:
+            order_by = "ORDER BY hierarchy DESC"
+        elif order_by_hierarchy is False:
+            order_by = "ORDER BY  attractivity DESC"
+        return g.cur.execute("""SELECT
+                                    *,
+                                    positive + negative AS attractivity,
+                                    positive - negative AS hierarchy
+                                FROM(
+                                    SELECT
+                                        *,
+                                        friend1*3 + friend2*2 + friend3 + traits1 + traits2 + traits3 + traits4 + traits5 AS positive,
+                                        antipathy1*3 + antipathy2*2 + antipathy3 + traits6 + traits7 + traits8 + traits9 + traits10 AS negative,
+                                        friend1 + friend2 + friend3 AS friendships,
+                                        antipathy1 + antipathy2 + antipathy3 AS antipathies
+                                    FROM
+                                    (
+                                         SELECT id, name, classid,
+                                        (SELECT COUNT(*) FROM questionnaires WHERE friend1=c.id) AS friend1,
+                                        (SELECT COUNT(*) FROM questionnaires WHERE friend2=c.id) AS friend2,
+                                        (SELECT COUNT(*) FROM questionnaires WHERE friend3=c.id) AS friend3,
+                                        (SELECT COUNT(*) FROM questionnaires WHERE antipathy1=c.id) AS antipathy1,
+                                        (SELECT COUNT(*) FROM questionnaires WHERE antipathy2=c.id) AS antipathy2,
+                                        (SELECT COUNT(*) FROM questionnaires WHERE antipathy3=c.id) AS antipathy3,
+                                        (SELECT COUNT(*) FROM questionnaires WHERE traits1=c.id) AS traits1,
+                                        (SELECT COUNT(*) FROM questionnaires WHERE traits2=c.id) AS traits2,
+                                        (SELECT COUNT(*) FROM questionnaires WHERE traits3=c.id) AS traits3,
+                                        (SELECT COUNT(*) FROM questionnaires WHERE traits4=c.id) AS traits4,
+                                        (SELECT COUNT(*) FROM questionnaires WHERE traits5=c.id) AS traits5,
+                                        (SELECT COUNT(*) FROM questionnaires WHERE traits6=c.id) AS traits6,
+                                        (SELECT COUNT(*) FROM questionnaires WHERE traits7=c.id) AS traits7,
+                                        (SELECT COUNT(*) FROM questionnaires WHERE traits8=c.id) AS traits8,
+                                        (SELECT COUNT(*) FROM questionnaires WHERE traits9=c.id) AS traits9,
+                                        (SELECT COUNT(*) FROM questionnaires WHERE traits10=c.id) AS traits10,
+                                        (SELECT selfeval FROM questionnaires WHERE child=c.id) AS selfeval,
+                                        (SELECT scale1+scale2+scale3+scale4+scale5 FROM questionnaires WHERE child=c.id) AS scale,
+                                        (SELECT yesnoquest1 FROM questionnaires WHERE child=c.id) AS yesnoquest1,
+                                        (SELECT yesnoquest2 FROM questionnaires WHERE child=c.id) AS yesnoquest2,
+                                        (SELECT yesnoquest3 FROM questionnaires WHERE child=c.id) AS yesnoquest3,
+                                        (SELECT yesnoquest4 FROM questionnaires WHERE child=c.id) AS yesnoquest4,
+                                        (SELECT yesnoquest5 FROM questionnaires WHERE child=c.id) AS yesnoquest5
+                                        FROM children AS c
+                                        WHERE class=?
+                                    )
+                                ) """ + order_by, [classid]).fetchall()
+
+
+    @staticmethod
+    def getRelationships(classid):
+        return g.cur.execute("""SELECT child, friend1, friend2, friend3, antipathy1, antipathy2, antipathy3
+                            FROM questionnaires
+                            WHERE child IN (SELECT id FROM children WHERE class=?)""", [classid]).fetchall()
 
     @staticmethod
     def getLinksData(classid, type):
@@ -286,14 +384,26 @@ class QuestionnaireModel(BaseDb):
         return {"onewaylinks": oneway, "twowaylinks": twoway}
 
     @staticmethod
-    def delete(qid):
+    def delete(childrenid):
         QuestionnaireModel.begin()
-        g.cur.execute("DELETE FROM questionnaires WHERE child=?", [qid])
+
+        try:
+            classid = g.cur.execute("""SELECT class
+                                        FROM children
+                                        WHERE children.id=?""", [childrenid]).fetchone()["class"]
+        except TypeError:
+            return False
+
+        if ClassModel.isClosed(classid):
+            return False
+
+        g.cur.execute("DELETE FROM questionnaires WHERE child=?", [childrenid])
         QuestionnaireModel.commit()
         return True
 
 
 class DiagramModel(BaseDb):
+    u"""Class for manipulating with diagrams"""
     @staticmethod
     def saveDiagram(classid, type, data):
         DiagramModel.begin()
@@ -324,96 +434,116 @@ class DiagramModel(BaseDb):
                                 LIMIT 1""", [classid, type]).fetchone()
 
 
+class TempfileModel(BaseDb):
+    u"""Temporary file storage"""
+    @staticmethod
+    def store_file(filename, content):
+        TempfileModel.begin()
+        key = hashlib.md5(filename+str(time.time())).hexdigest()
+        g.cur.execute("INSERT INTO tempfiles (filename, hash, data) VALUES (?,?,?)", [filename, key, content])
+        TempfileModel.commit()
+        return key
+
+    @staticmethod
+    def use_and_burn(hash):
+            TempfileModel.begin()
+            data = g.cur.execute("SELECT * FROM tempfiles WHERE hash=?", [hash]).fetchone()
+            g.cur.execute("DELETE FROM tempfiles WHERE hash=?", [hash])
+            TempfileModel.commit()
+            return data
+
+
 class Questionnaire(object):
     u"""Class with texts of questionnaire"""
     def __init__(self):
+        pass
 
-        self.friends = [
-            {"formname": "friend1",
-                "label": u"Mezi přátele patří (1. volba)" },
-            {"formname": "friend2",
-                "label": u"Mezi přátele patří (2. volba)"},
-            {"formname": "friend3",
-                "label": u"Mezi přátele patří (3. volba)"},
-        ]
+    friends = [
+        {"formname": "friend1",
+            "label": u"Mezi přátele patří (1. volba)" },
+        {"formname": "friend2",
+            "label": u"Mezi přátele patří (2. volba)"},
+        {"formname": "friend3",
+            "label": u"Mezi přátele patří (3. volba)"},
+    ]
 
-        self.antipathy = [
-            {"formname": "antipathy1",
-                "label": u"Jako přítele by sis nevybral (1.volba)"},
-            {"formname": "antipathy2",
-                "label": u"Jako přítele by sis nevybral (2.volba)"},
-            {"formname": "antipathy3",
-                "label": u"Jako přítele by sis nevybral (3.volba)"},
-        ]
+    antipathy = [
+        {"formname": "antipathy1",
+            "label": u"Jako přítele by sis nevybral (1.volba)"},
+        {"formname": "antipathy2",
+            "label": u"Jako přítele by sis nevybral (2.volba)"},
+        {"formname": "antipathy3",
+            "label": u"Jako přítele by sis nevybral (3.volba)"},
+    ]
 
-        self.selfeval = [
-            {"value": 1,
-                "text": u"a) jsem vždy v centru dění"},
-            {"value": 2,
-                "text": u"b) občas se účastním a jsem obvykle o akcích ve třídě informován"},
-            {"value": 3,
-                "text": u"c) párkrát jsem se akcí ve třídě účastnil, ale nebývám informován"},
-            {"value": 4,
-                "text": u"d) zdá se, že o mou účast třída příliš nestojí"},
-            {"value": 5,
-                "text": u"e) o dění ve třídě nejevím zájem"},
-        ]
+    selfeval = [
+        {"value": 1,
+            "text": u"a) jsem vždy v centru dění"},
+        {"value": 2,
+            "text": u"b) občas se účastním a jsem obvykle o akcích ve třídě informován"},
+        {"value": 3,
+            "text": u"c) párkrát jsem se akcí ve třídě účastnil, ale nebývám informován"},
+        {"value": 4,
+            "text": u"d) zdá se, že o mou účast třída příliš nestojí"},
+        {"value": 5,
+            "text": u"e) o dění ve třídě nejevím zájem"},
+    ]
 
-        self.yesnoquest = [
-            {"text": u"Ve třídě je nejméně jeden žák, který je nešťastný…",
-                "formname": "yesnoquest1"},
-            {"text": u"Ve třídě je někdo, komu ostatní občas ubližují…",
-                "formname": "yesnoquest2"},
-            {"text": u"Stává se, že se do školy těším…",
-                "formname": "yesnoquest3"},
-            {"text": u"Většinou se najde někdo, kdo mi pomůže s problémem…",
-                "formname": "yesnoquest4"},
-            {"text": u"Společné problémy řešíme většinou v klidu…",
-                "formname": "yesnoquest5"},
-        ]
+    yesnoquest = [
+        {"text": u"Ve třídě je nejméně jeden žák, který je nešťastný…",
+            "formname": "yesnoquest1"},
+        {"text": u"Ve třídě je někdo, komu ostatní občas ubližují…",
+            "formname": "yesnoquest2"},
+        {"text": u"Stává se, že se do školy těším…",
+            "formname": "yesnoquest3"},
+        {"text": u"Většinou se najde někdo, kdo mi pomůže s problémem…",
+            "formname": "yesnoquest4"},
+        {"text": u"Společné problémy řešíme většinou v klidu…",
+            "formname": "yesnoquest5"},
+    ]
 
-        self.scale = [
-            {"mintext": u"pocit bezpečí",
-                "maxtext": u"pocit ohrožení",
-                "formname": "scale1"},
-            {"mintext": u"pocit přátelství",
-                "maxtext": u"pocit nepřátelství",
-                "formname": "scale2"},
-            {"mintext": u"atmosféra spolupráce",
-                "maxtext": u"atmosféra lhostejnosti",
-                "formname": "scale3"},
-            {"mintext": u"pocit důvěry",
-                "maxtext": u"pocit nedůvěry",
-                "formname": "scale4"},
-            {"mintext": u"tolerance",
-                "maxtext": u"netolerance",
-                "formname": "scale5"},
-        ]
+    scale = [
+        {"mintext": u"pocit bezpečí",
+            "maxtext": u"pocit ohrožení",
+            "formname": "scale1"},
+        {"mintext": u"pocit přátelství",
+            "maxtext": u"pocit nepřátelství",
+            "formname": "scale2"},
+        {"mintext": u"atmosféra spolupráce",
+            "maxtext": u"atmosféra lhostejnosti",
+            "formname": "scale3"},
+        {"mintext": u"pocit důvěry",
+            "maxtext": u"pocit nedůvěry",
+            "formname": "scale4"},
+        {"mintext": u"tolerance",
+            "maxtext": u"netolerance",
+            "formname": "scale5"},
+    ]
 
-        self.traits = [
-            {"text": u"spravedlivý",
-                "formname": "traits1"},
-            {"text": u"spolehlivý",
-                "formname": "traits2"},
-            {"text": u"zábavný",
-                "formname": "traits3"},
-            {"text": u"vždy v centru dění",
-                "formname": "traits4"},
-            {"text": u"se všemi zadobře",
-                "formname": "traits5"},
-            {"text": u"protivný",
-                "formname": "traits6"},
-            {"text": u"nespravedlivý",
-                "formname": "traits7"},
-            {"text": u"nevděčný",
-                "formname": "traits8"},
-            {"text": u"nespolehlivý",
-                "formname": "traits9"},
-            {"text": u"osamocený",
-                "formname": "traits10"},
-        ]
+    traits = [
+        {"text": u"spravedlivý",
+            "formname": "traits1"},
+        {"text": u"spolehlivý",
+            "formname": "traits2"},
+        {"text": u"zábavný",
+            "formname": "traits3"},
+        {"text": u"vždy v centru dění",
+            "formname": "traits4"},
+        {"text": u"se všemi zadobře",
+            "formname": "traits5"},
+        {"text": u"protivný",
+            "formname": "traits6"},
+        {"text": u"nespravedlivý",
+            "formname": "traits7"},
+        {"text": u"nevděčný",
+            "formname": "traits8"},
+        {"text": u"nespolehlivý",
+            "formname": "traits9"},
+        {"text": u"osamocený",
+            "formname": "traits10"},
+    ]
 
-        self.allkeys = ["friend1", "friend2", "friend3",
+    allkeys = ["friend1", "friend2", "friend3",
                         "antipathy1", "antipathy2", "antipathy3",
                         "selfeval",
                         "yesnoquest1", "yesnoquest2", "yesnoquest3", "yesnoquest4", "yesnoquest5",
@@ -421,8 +551,29 @@ class Questionnaire(object):
                         "traits1", "traits2", "traits3", "traits4", "traits5",
                         "traits6", "traits7", "traits8", "traits9", "traits10"]
 
-        self.zeroisnullkeys = ["friend1", "friend2", "friend3",
+    zeroisnullkeys = ["friend1", "friend2", "friend3",
                       "antipathy1", "antipathy2", "antipathy3",
                       "selfeval",
                       "traits1", "traits2", "traits3", "traits4", "traits5",
                       "traits6", "traits7", "traits8", "traits9", "traits10"]
+
+    positivetraits = ["traits1", "traits2", "traits3", "traits4", "traits5"]
+
+    negativetraits = ["traits6", "traits7", "traits8", "traits9", "traits10"]
+
+    selfeval_inttochar = {
+        1: "a",
+        2: "b",
+        3: "c",
+        4: "d",
+        5: "e",
+        None: ""
+    }
+
+    yesno_toint = {
+        "yesnoquest1": {1: 0, 0:1, None: 0},
+        "yesnoquest2": {1: 0, 0: 1, None: 0},
+        "yesnoquest3": {1: 1, 0: 0, None: 0},
+        "yesnoquest4": {1: 1, 0: 0, None: 0},
+        "yesnoquest5": {1: 1, 0: 0, None: 0}
+    }

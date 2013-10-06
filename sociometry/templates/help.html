@@ -3,38 +3,57 @@
 {% block body %}
 <div class="container">
     <div class="col-md-3">
-        <ul class="nav bs-sidenav">
-        <li>
-  <a href="#js-overview">Overview</a>
-  <ul class="nav">
-    <li><a href="#js-individual-compiled">Individual or compiled</a></li>
-    <li><a href="#js-data-attrs">Data attributes</a></li>
-  </ul>
-</li>
-<li>
-  <a href="#affix">Affix</a>
-  <ul class="nav">
-    <li><a href="#affix-examples">Examples</a></li>
-    <li><a href="#affix-usage">Usage</a></li>
-  </ul>
-</li>
-
-
+        <div class="affix" data-spy="affix" id="affix">
+            <ul class="nav bs-sidenav affix help-affix" data-spy="affix">
+                <li>
+                    <a href="#affix-overview">O aplikaci</a>
+                </li>
+                <li>
+                    <li>
+                        <a href="#affix-sociometry">O sociometrii</a>
+                    </li>
+                    <ul class="nav">
+                        <li><a href="#affix-sociometry-questionnaires">Podporované dotazníky</a></li>
+                        <li><a href="#affix-sociometry-outputs">Výstupy</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#affix-get-help">Pomoc</a>
+                </li>
             </ul>
+        </div>
     </div>
     <div class="col-md-9">
-        <h1>Help!</h1>
+        <div id="affix-overview">
+            <h1>Nápověda</h1>
+            <p>Vítejte v aplikaci Sociometrie. Tato aplikace umožňuje přepsat sociometrické dotazníky a z přepsaných dat vytvořit sociogramy a excelovou tabulku s jednotlivými přehledy </p>
+        </div>
+        <div id="affix-sociometry">
+            <h3>Sociometrie</h3>
+                <h4 id="affix-sociometry-questionnaires">Jaké dotazníky jsou podporované?</h4>
+                <p>Aplikace v současné době podporuje pouze dotazník vytvořený PhDr. Richardem Braunem, Ph.D., DrSc.</p>
+                <h4 id="affix-sociometry-outputs">Jaké jsou výstupy</h4>
+                <p>Aplikace má následující výstupy:
+                    <ul>
+                        <li>Diagram přátelských vazeb</li>
+                        <li>Diagram vzájemných antipatií</li>
+                        <li>Excelová data s různými výpočty</li>
+                    </ul>
+                </p>
+        </div>
+        <div id="affix-get-help">
+            <p class="lead">Pořád potřebuji pomoci.</p>
+            Můžete zkusit zkontaktovat autora této aplikace, Jakuba Luckého. Kontakt získáte na adrese <a href="http://jakublucky.cz">http://jakublucky.cz</a>
+        </div>
+
     </div>
 </div>
 
 
 <script type="text/javascript">
-$('#myAffix').affix({
+$('#affix').affix({
     offset: {
-      top: 100
-    , bottom: function () {
-        return (this.bottom = $('.bs-footer').outerHeight(true))
-      }
+      top: -50
     }
   })
 </script>
