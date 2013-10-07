@@ -248,7 +248,7 @@ class QuestionnaireModel(BaseDb):
             values = g.cur.execute("""SELECT DISTINCT (SELECT COUNT(id) FROM questionnaires
                                 WHERE friend1=q.child  OR friend2=q.child OR friend3=q.child) AS count
                                 FROM questionnaires AS q
-                                WHERE child IN (SELECT id FROM children WHERE class=?);""", [classid]).fetchall()
+                                WHERE child IN (SELECT id FROM children WHERE class=?) ORDER BY count ASC""", [classid]).fetchall()
 
         #Same stuff, but for antipathy (yes, I am feeling wet :-))
         elif type == "antipathy":
@@ -262,7 +262,7 @@ class QuestionnaireModel(BaseDb):
             values = g.cur.execute("""SELECT DISTINCT (SELECT COUNT(id) FROM questionnaires WHERE antipathy1=q.child  OR
                                     antipathy2=q.child OR antipathy3=q.child) AS count
                                     FROM questionnaires AS q
-                                    WHERE child IN (SELECT id FROM children WHERE class=?);""", [classid]).fetchall()
+                                    WHERE child IN (SELECT id FROM children WHERE class=?) ORDER BY count ASC""", [classid]).fetchall()
         else:
             #Not friend, nor antipathy diagram
             return None
@@ -272,17 +272,21 @@ class QuestionnaireModel(BaseDb):
         temp = [value[0] for value in values]
         temp.sort()
         temp.reverse()
+        if temp[-1] == 0:
+            zeroorbit = True
+        else:
+            zeroorbit = False
         orbit_dict = ({value: key for key, value in enumerate(temp)})
         del temp
 
         #number of orbits
         return_dict["orbits"] = len(orbit_dict)
+        return_dict["zeroorbit"] = zeroorbit
         return_dict["children"] = []
         for pref in prefs:
             return_dict["children"].append(
                 {"classid": pref["classid"], "gender": pref["gender"], "orbit": orbit_dict[pref["count"]]}
             )
-
         return return_dict
 
     @staticmethod

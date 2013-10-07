@@ -89,11 +89,17 @@
         }
 
         //puts all orbits on graph
-        function makeOrbits(orbits){
+        function makeOrbits(orbits, zeroorbit){
             var realorbits = []
-
+            console.log(zeroorbit)
             for (var i=0;i<orbits;i++){
-                realorbits[i] = ring(centerpoint.x, centerpoint.y, (i+1)*120, orbits-i)
+                if(zeroorbit){
+                    orbitnum = orbits-i-1
+                }
+                else{
+                    orbitnum = orbits-i
+                }
+                realorbits[i] = ring(centerpoint.x, centerpoint.y, (i+1)*120, orbitnum)
             }
             return realorbits
         }
@@ -132,7 +138,7 @@
         }
 
 
-        var orbits = makeOrbits(config.orbits);
+        var orbits = makeOrbits(config.orbits, config.zeroorbit);
         var children = makeChildren(config.children);
         var onewaylinks = makeOneWayLinks(config.onewaylinks, children)
         var twowaylinks = makeTwoWayLinks(config.twowaylinks, children)

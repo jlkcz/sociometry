@@ -181,8 +181,19 @@ class ClassExporter(object):
         for line in data:
             friendships.add(line["friendships"])
             antipathies.add(line["antipathies"])
-        friendships2orbit = {value: key for key, value in enumerate(sorted(friendships), start=1)}
-        antipathies2orbit = {value: key for key, value in enumerate(sorted(antipathies), start=1)}
+
+        #Make sure that we will start with orbit 0 if there is someone who has no links
+        if sorted(friendships)[0] == 0:
+            fr_start = 0
+        else:
+            fr_start = 1
+        if sorted(antipathies)[0] == 0:
+            an_start = 0
+        else:
+            an_start = 1
+
+        friendships2orbit = {value: key for key, value in enumerate(sorted(friendships), start=fr_start)}
+        antipathies2orbit = {value: key for key, value in enumerate(sorted(antipathies), start=an_start)}
 
         def_style_dict = {
             "font": "Arial",
@@ -220,7 +231,7 @@ class ClassExporter(object):
             #Kladné body
             ws.write(row+inc, 3, friend_str, posi_style)
             #Orbita
-            ws.write(row+inc, 4, friendships2orbit[line["friendships"]], def_style)
+            ws.write(row+inc, 4, eiz(friendships2orbit[line["friendships"]]), def_style)
             #traits...
             ws.write(row+inc, 5, eiz(line["traits1"]), posi_style)
             ws.write(row+inc, 6, eiz(line["traits2"]), posi_style)
@@ -234,7 +245,7 @@ class ClassExporter(object):
             #záporné body
             ws.write(row+inc, 12, antipathy_str, def_style)
             #orbita
-            ws.write(row+inc, 13, antipathies2orbit[line["antipathies"]], def_style)
+            ws.write(row+inc, 13, eiz(antipathies2orbit[line["antipathies"]]), def_style)
             #traits
             ws.write(row+inc, 14, eiz(line["traits6"]), nega_style)
             ws.write(row+inc, 15, eiz(line["traits7"]), nega_style)
