@@ -138,6 +138,10 @@ def view_class(classid):
     return render_template("viewclass.html", classdata=classdata, children=children, completion=completion)
 
 
+@app.route("/view/questionnaire/<int:qid>")
+def view_questionnaire(qid):
+    pass
+
 @app.route("/modify/class/<int:classid>", methods=["POST"])
 def modify_class(classid):
     if not m.ClassModel.exists(classid):
@@ -175,7 +179,7 @@ def reopen_class(classid):
     if not m.ClassModel.exists(classid):
         flash(u"Taková třída neexistuje", "warning")
         return redirect(url_for("index"))
-    m.ClassModel.reopen(classmethod)
+    m.ClassModel.reopen(classid)
     return redirect(url_for("view_class", classid=classid))
 
 
