@@ -5,20 +5,27 @@ from flask import Flask, url_for, request, g
 import datetime
 import sqlite3
 from sqlite3 import OperationalError
+import os
 
 
 app = Flask("sociometry")
 app.secret_key = 'jlkczisthebestwithverywrongsecretkey'
-DATABASE = "sociometry.db"
+#DATABASE = "sociometry.db"
 
 
 #Databases
 def connect_to_database():
-    conn = sqlite3.connect(DATABASE)
+    conn = sqlite3.connect(app.config["DATABASE"])
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON;")
     conn.commit()
     return conn
+
+def create_db_file():
+    if not os.path.exists(app.config["DATABASE"]):
+        dbdir = os.path.dirname(app.config["DATABASE"])
+        if not os.path.isdir(dbdir):
+            os.makedirs(dbdir)
 
 
 def init_db():
@@ -31,11 +38,12 @@ def init_db():
 def get_db():
     db = getattr(g, 'db', None)
     if db is None:
+        create_db_file()
         g.db = connect_to_database()
         g.cur = g.db.cursor()
         #Check if we have DB already created
         try:
-            g.db.execute("SELECT * FROM children")
+            g.db.execute("SELECT * FROM classes")
         except OperationalError:
             init_db()
     return db

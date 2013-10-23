@@ -13,7 +13,7 @@ import datetime
 import StringIO
 
 def eiz(value):
-    u"""Return empty string if zero"""
+    u"""Empty-if-zero: Return empty string if zero"""
     if value == 0:
         return ""
     return value
