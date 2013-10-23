@@ -328,6 +328,8 @@ class ClassExporter(object):
         ws.set_column(6, 6, 6, self.__cs({"font": "Arial", "size": 10}))
 
         std_style = self.__cs({"top": 1, "bottom": 1, "font": "Arial", "size": 10})
+        lalign_style = self.__cs({"top": 1, "bottom": 1, "font": "Arial", "size": 10, "align": "left"})
+        ralign_style = self.__cs({"top": 1, "bottom": 1, "font": "Arial", "size": 10, "align": "right"})
         top_style = self.__cs({"top": 2, "bottom": 1, "font": "Arial", "size": 10})
         bottom_style = self.__cs({"top": 1, "bottom": 2, "font": "Arial", "size": 10})
 
@@ -347,10 +349,10 @@ class ClassExporter(object):
         #second paragraph
         line7 = ["", "", "", "", "", u"SUMA", u"Průměr"]
         ws.write_row(7, 0, line7, top_style)
-        line8 = [u"Kladné pocity", "", "(5-35)", "",	u"Z otázky 5 - aritmetický průměr", "?", "?"]
-        line9 = [u"Kvalita kolektivu", "", "(5-35)", "",	u"Z otázky 5 - aritmetický průměr", "?", "?"]
+        line8 = [u"Kladné pocity", "", "(5-35)", "",	u"Z otázky 5 - aritmetický průměr", "", ""]
+        line9 = [u"Kvalita kolektivu", "", "(0-5)", "",	u"Z otázky 5 - aritmetický průměr", "", ""]
         ws.write_row(8, 0, line8, std_style)
-        ws.write_row(9, 0, line9, std_style)
+        ws.write_row(9, 0, line9, bottom_style)
         ws.write_formula("G9", "=F9/B5", std_style)
         ws.write_formula("G10", "=F10/B5", bottom_style)
 
@@ -389,7 +391,6 @@ class ClassExporter(object):
 
         line23 = [u"Žáci v kladné polovině třídy", "", "", "", u"Z hierarchie - v % s kladným ziskem a nulou"]
         ws.write_row(23, 0, line23, self.__cs({"top": 2, "bottom": 2, "font": "Arial", "size": 10}))
-        ws.write_formula("G24", "=100*F24/B4", self.__cs({"top": 2, "bottom": 2, "font": "Arial", "size": 10}))
 
         #These are tricky :-(
         ws.write(25, 0, u"Počet vzájemných voleb", top_style)
@@ -407,11 +408,16 @@ class ClassExporter(object):
         ws.merge_range("B29:C29", u"záporných", bottom_style)
         ws.write(28, 3, "", bottom_style)
         ws.write(28, 4, u"Vyděleno počtem přítomných", bottom_style)
-        #For styles
-        ws.write("G26", "", top_style)
-        ws.write("G27", "", std_style)
+
         ws.write_formula("G28", "=G26/B5", std_style)
         ws.write_formula("G29", "=G27/B5", bottom_style)
+        #For styles
+        ws.write("G26", "", top_style)
+        ws.write("F26", "", top_style)
+        ws.write("F27", "", std_style)
+        ws.write("F28", "", std_style)
+        ws.write("F29", "", bottom_style)
+
 
         ws.write(30, 0, u"Počet voleb celkem", top_style)
         ws.merge_range("B31:C31", u"kladných", top_style)
@@ -429,27 +435,36 @@ class ClassExporter(object):
         ws.write(33, 3, "", self.__cs({"bottom": 2, "font": "Arial", "size": 10}))
         ws.write(33, 4, u"Vyděleno počtem přítomných", self.__cs({"bottom": 2, "font": "Arial", "size": 10}))
         #For styles
-        ws.write("G31", "", top_style)
-        ws.write("G32", "", std_style)
+        ws.write("F31", "", top_style)
+        ws.write("F32", "", std_style)
+        ws.write("F33", "", std_style)
+        ws.write("F34", "", bottom_style)
         ws.write_formula("G33", "=G31/B5", std_style)
         ws.write_formula("G34", "=G32/B5", bottom_style)
 
         #Yet another different cell merging
-        line35 = [u"Index pozitivity", "", "", "", u"suma kladných znalostí"]
+        line35 = [u"Index pozitivity", "", "", "", u"suma kladných vlastností"]
         ws.write_row(35, 0, line35, self.__cs({"top": 2, "bottom": 1, "font": "Arial", "size": 10}))
         line36 = [u"", "", "", "", u"suma záporných znalostí"]
         ws.write_row(36, 0, line36, std_style)
         ws.write(37, 0, "", std_style)
         ws.merge_range("B38:E38", u"index = suma kladných/suma záporných*100", std_style)
-        #For styles
-        ws.write("G36", "", top_style)
-        ws.write("G37", "", std_style)
         ws.write_formula("G38", "=G36/G37*100", std_style)
+        #For styles
+        ws.write("F36", "", top_style)
+        ws.write("F37", "", std_style)
+        ws.write("F38", "", std_style)
+        ws.write("F39", "", std_style)
+        ws.write("F40", "", std_style)
+        ws.write("F41", "", std_style)
+        ws.write("F42", "", bottom_style)
+
+
 
         ws.write_row(38, 0, ["", "", "", "", "", "", ""], std_style)
-        line39 = [u"Index sociálního klimatu", "", "", "", u"suma kladných znalostí"]
+        line39 = [u"Index sociálního klimatu", "", "", "", u"suma kladných bodů"]
         ws.write_row(39, 0, line39, std_style)
-        line40 = [u"", "", "", "", u"suma záporných znalostí"]
+        line40 = [u"", "", "", "", u"suma záporných bodů"]
         ws.write_row(40, 0, line40, std_style)
         ws.write(41, 0, "", self.__cs({"top": 1, "bottom": 2, "font": "Arial", "size": 10}))
         ws.merge_range("B42:E42", u"index = suma kladných/suma záporných*100", self.__cs({"top": 1, "bottom": 2, "font": "Arial", "size": 10}))
@@ -464,10 +479,53 @@ class ClassExporter(object):
         ws.write_row(44, 0, line44, self.__cs({"top": 1, "bottom": 2, "font": "Arial", "size": 10}))
         ws.write_formula("G45", "=G44/B5", bottom_style)
         #For styles
-        ws.write("G44", "", top_style)
+        ws.write("F44", "", top_style)
+        ws.write("F45", "", bottom_style)
 
         ###### Write formulas ######
         #TODO: write here the know how
+        data = m.QuestionnaireModel.getQuantitativeData(self.classdata["id"])
+        #First paragraph
+        ws.write("B4", data["children_count"], lalign_style)
+        ws.write("B5", data["children_count"]-data["missing"], lalign_style)
+        #second paragraph
+        ws.write("F9", data["positive_feelings"], std_style)
+        ws.write("F10", data["quality"], bottom_style)
+        #third paragraph
+        ws.write("F12", data["scale1"], top_style)
+        ws.write("F13", data["scale2"], std_style)
+        ws.write("F14", data["scale3"], std_style)
+        ws.write("F15", data["scale4"], std_style)
+        ws.write("F16", data["scale5"], bottom_style)
+        ws.write_formula("G12", "=F12/B5", top_style)
+        ws.write_formula("G13", "=F13/B5", std_style)
+        ws.write_formula("G14", "=F14/B5", std_style)
+        ws.write_formula("G15", "=F15/B5", std_style)
+        ws.write_formula("G16", "=F16/B5", bottom_style)
+        #fourth paragraph
+        ws.write("F18", data["yesnoquest1"], top_style)
+        ws.write("F19", data["yesnoquest2"], std_style)
+        ws.write("F20", data["yesnoquest3"], std_style)
+        ws.write("F21", data["yesnoquest4"], std_style)
+        ws.write("F22", data["yesnoquest5"], bottom_style)
+        ws.write_formula("G18", "=F18/B5*100", top_style)
+        ws.write_formula("G19", "=F19/B5*100", std_style)
+        ws.write_formula("G20", "=F20/B5*100", std_style)
+        ws.write_formula("G21", "=F21/B5*100", std_style)
+        ws.write_formula("G22", "=F22/B5*100", bottom_style)
+        #fifth
+        ws.write("F24","",self.__cs({"top": 2, "bottom": 2, "font": "Arial", "size": 10}))
+        ws.write("G24", u'=(COUNTIF(Kvalitativní!F5:F115,">=0")/B4)*100', self.__cs({"top": 2, "bottom": 2, "font": "Arial", "size": 10}))
+        #seventh
+        ws.write("G31", data["friend_all"], top_style)
+        ws.write("G32", data["antipathy_all"], std_style)
+        #eighth
+        ws.write("G36", data["traits_positive"], top_style)
+        ws.write("G37", data["traits_negative"], std_style)
+        ws.write("G40", u'=SUM(Přehled!T4:T'+str(4+data["children_count"])+')', std_style)
+        ws.write("G41", u'=SUM(Přehled!U4:U'+str(4+data["children_count"])+')', std_style)
+        #ninth paragraph
+        ws.write("G44", data["empathy"], top_style)
 
 
     @staticmethod

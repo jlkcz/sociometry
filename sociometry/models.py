@@ -341,6 +341,47 @@ class QuestionnaireModel(BaseDb):
 
 
     @staticmethod
+    def getQuantitativeData(classid):
+        return g.cur.execute("""SELECT missing,
+                    (SELECT COUNT(*) FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid)) AS children_count,
+                    (SELECT SUM(scale1+scale2+scale3+scale4+scale5) FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid)) AS positive_feelings,
+                    (SELECT SUM(result) FROM(
+                        SELECT
+                        	CASE WHEN yesnoquest1=0 OR yesnoquest1 IS NULL THEN 1 ELSE 0 END +
+                        	CASE WHEN yesnoquest2=0 OR yesnoquest2 IS NULL THEN 1 ELSE 0 END +
+                        	CASE WHEN yesnoquest3=0 OR yesnoquest3 IS NULL THEN 0 ELSE 1 END +
+                        	CASE WHEN yesnoquest4=0 OR yesnoquest4 IS NULL THEN 0 ELSE 1 END +
+                        	CASE WHEN yesnoquest5=0 OR yesnoquest5 IS NULL THEN 0 ELSE 1 END
+                        AS Result
+                        FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid))) AS quality,
+                    (SELECT SUM(scale1) FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid)) AS scale1,
+                    (SELECT SUM(scale2) FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid)) AS scale2,
+                    (SELECT SUM(scale3) FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid)) AS scale3,
+                    (SELECT SUM(scale4) FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid)) AS scale4,
+                    (SELECT SUM(scale5) FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid)) AS scale5,
+                    (SELECT SUM(yesnoquest1) FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid)) AS yesnoquest1,
+                    (SELECT SUM(yesnoquest2) FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid)) AS yesnoquest2,
+                    (SELECT SUM(yesnoquest3) FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid)) AS yesnoquest3,
+                    (SELECT SUM(yesnoquest4) FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid)) AS yesnoquest4,
+                    (SELECT SUM(yesnoquest5) FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid)) AS yesnoquest5,
+                    (SELECT SUM(result) FROM(
+                        SELECT CASE WHEN friend1 IS NULL THEN 0 ELSE 1 END + CASE WHEN friend2 IS NULL THEN 0 ELSE 1 END + CASE WHEN friend3 IS NULL THEN 0 ELSE 1 END AS Result
+                        FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid))) AS friend_all,
+                    (SELECT SUM(result) FROM(
+                        SELECT CASE WHEN antipathy1 IS NULL THEN 0 ELSE 1 END + CASE WHEN antipathy2 IS NULL THEN 0 ELSE 1 END + CASE WHEN antipathy3 IS NULL THEN 0 ELSE 1 END AS Result
+                        FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid))) AS antipathy_all,
+                    (SELECT SUM(result) FROM(
+                        SELECT CASE WHEN traits1 IS NULL THEN 0 ELSE 1 END + CASE WHEN traits2 IS NULL THEN 0 ELSE 1 END + CASE WHEN traits3 IS NULL THEN 0 ELSE 1 END + CASE WHEN traits4 IS NULL THEN 0 ELSE 1 END + CASE WHEN traits5 IS NULL THEN 0 ELSE 1 END AS Result
+                        FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid))) AS traits_positive,
+                    (SELECT SUM(result) FROM(
+                        SELECT CASE WHEN traits6 IS NULL THEN 0 ELSE 1 END + CASE WHEN traits7 IS NULL THEN 0 ELSE 1 END + CASE WHEN traits8 IS NULL THEN 0 ELSE 1 END + CASE WHEN traits9 IS NULL THEN 0 ELSE 1 END + CASE WHEN traits10 IS NULL THEN 0 ELSE 1 END AS Result
+                        FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid))) AS traits_negative,
+                    (SELECT COUNT(*) FROM questionnaires WHERE yesnoquest1=0 AND yesnoquest2=1 AND child IN (SELECT id FROM children WHERE classid=:classid)) AS empathy
+                      FROM classes WHERE id=:classid""", {"classid": classid}).fetchone()
+        pass
+
+
+    @staticmethod
     def getRelationships(classid):
         return g.cur.execute("""SELECT child, friend1, friend2, friend3, antipathy1, antipathy2, antipathy3
                             FROM questionnaires
