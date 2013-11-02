@@ -516,6 +516,9 @@ class ClassExporter(object):
         #fifth
         ws.write("F24","",self.__cs({"top": 2, "bottom": 2, "font": "Arial", "size": 10}))
         ws.write("G24", u'=(COUNTIF(Kvalitativní!F5:F115,">=0")/B4)*100', self.__cs({"top": 2, "bottom": 2, "font": "Arial", "size": 10}))
+        #sixth
+        ws.write("G26", data["bidirectional_friends"], top_style)
+        ws.write("G27", data["bidirectional_antipathys"], std_style)
         #seventh
         ws.write("G31", data["friend_all"], top_style)
         ws.write("G32", data["antipathy_all"], std_style)

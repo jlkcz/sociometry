@@ -354,6 +354,40 @@ class QuestionnaireModel(BaseDb):
                         	CASE WHEN yesnoquest5=0 OR yesnoquest5 IS NULL THEN 0 ELSE 1 END
                         AS Result
                         FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid))) AS quality,
+                    (SELECT COUNT(*)/2 AS count FROM (
+                        SELECT DISTINCT A.child,A.friend,B.friend,B.child FROM (
+                            SELECT child, friend1 AS friend FROM questionnaires WHERE friend1 IS NOT NULL AND child IN (SELECT id FROM children WHERE class=:classid)
+                            UNION
+                            SELECT child, friend2 AS friend FROM questionnaires WHERE friend2 IS NOT NULL AND child IN (SELECT id FROM children WHERE class=:classid)
+                            UNION
+                            SELECT child, friend3 AS friend FROM questionnaires WHERE friend3 IS NOT NULL AND child IN (SELECT id FROM children WHERE class=:classid)
+                        ) A
+                        INNER JOIN (
+                            SELECT child, friend1 AS friend FROM questionnaires WHERE friend1 IS NOT NULL AND child IN (SELECT id FROM children WHERE class=:classid)
+                            UNION
+                            SELECT child, friend2 AS friend FROM questionnaires WHERE friend2 IS NOT NULL AND child IN (SELECT id FROM children WHERE class=:classid)
+                            UNION
+                            SELECT child, friend3 AS friend FROM questionnaires WHERE friend3 IS NOT NULL AND child IN (SELECT id FROM children WHERE class=:classid)
+                        ) B
+                        WHERE A.child=B.friend AND B.child=A.friend
+                    )) AS bidirectional_friends,
+                                        (SELECT COUNT(*)/2 AS count FROM (
+                        SELECT DISTINCT A.child,A.antipathy,B.antipathy,B.child FROM (
+                            SELECT child, antipathy1 AS antipathy FROM questionnaires WHERE antipathy1 IS NOT NULL AND child IN (SELECT id FROM children WHERE class=:classid)
+                            UNION
+                            SELECT child, antipathy2 AS antipathy FROM questionnaires WHERE antipathy2 IS NOT NULL AND child IN (SELECT id FROM children WHERE class=:classid)
+                            UNION
+                            SELECT child, antipathy3 AS antipathy FROM questionnaires WHERE antipathy3 IS NOT NULL AND child IN (SELECT id FROM children WHERE class=:classid)
+                        ) A
+                        INNER JOIN (
+                            SELECT child, antipathy1 AS antipathy FROM questionnaires WHERE antipathy1 IS NOT NULL AND child IN (SELECT id FROM children WHERE class=:classid)
+                            UNION
+                            SELECT child, antipathy2 AS antipathy FROM questionnaires WHERE antipathy2 IS NOT NULL AND child IN (SELECT id FROM children WHERE class=:classid)
+                            UNION
+                            SELECT child, antipathy3 AS antipathy FROM questionnaires WHERE antipathy3 IS NOT NULL AND child IN (SELECT id FROM children WHERE class=:classid)
+                        ) B
+                        WHERE A.child=B.antipathy AND B.child=A.antipathy
+                    )) AS bidirectional_antipathys,
                     (SELECT SUM(scale1) FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid)) AS scale1,
                     (SELECT SUM(scale2) FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid)) AS scale2,
                     (SELECT SUM(scale3) FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid)) AS scale3,

@@ -11,5 +11,5 @@ class DevelopmentConfig(object):
     TRAP_BAD_REQUEST_ERRORS = True
 
 app.config.from_object(DevelopmentConfig())
-app.config["DATABASE"] = "sociometry.db"
+app.config["DATABASE"] = "./sociometry.db"
 app.run()
