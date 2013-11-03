@@ -214,22 +214,20 @@ class QuestionnaireModel(BaseDb):
         return g.cur.lastrowid
 
     @staticmethod
-    def getOrbitCount(classid, type):
-            if type == "friend":
+    def getOrbitNums(classid, type):
+        if type == "friend":
                 values = g.cur.execute("""SELECT DISTINCT (SELECT COUNT(id) FROM questionnaires
                                 WHERE friend1=q.child  OR friend2=q.child OR friend3=q.child) AS count
                                 FROM questionnaires AS q
-                                WHERE child IN (SELECT id FROM children WHERE class=?);""", [classid]).fetchall()
-            elif type == "antipathy":
-                values = g.cur.execute("""SELECT DISTINCT (SELECT COUNT(id) FROM questionnaires WHERE antipathy1=q.child  OR
-                                    antipathy2=q.child OR antipathy3=q.child) AS count
-                                    FROM questionnaires AS q
-                                    WHERE child IN (SELECT id FROM children WHERE class=?);""", [classid]).fetchall()
-            else:
-                return None
-
-            return len(values)
-
+                                WHERE child IN (SELECT id FROM children WHERE class=?) ORDER by count DESC""", [classid]).fetchall()
+        elif type == "antipathy":
+            values = g.cur.execute("""SELECT DISTINCT (SELECT COUNT(id) FROM questionnaires WHERE antipathy1=q.child  OR
+                                antipathy2=q.child OR antipathy3=q.child) AS count
+                                FROM questionnaires AS q
+                                WHERE child IN (SELECT id FROM children WHERE class=?) ORDER by count DESC""", [classid]).fetchall()
+        else:
+            return None
+        return [x[0] for x in values]
 
     @staticmethod
     def getDiagramData(classid, type):
@@ -278,10 +276,11 @@ class QuestionnaireModel(BaseDb):
             zeroorbit = False
         orbit_dict = ({value: key for key, value in enumerate(temp)})
         del temp
+        return_dict["orbit_nums"] = QuestionnaireModel.getOrbitNums(classid, type)
 
         #number of orbits
-        return_dict["orbits"] = len(orbit_dict)
-        return_dict["zeroorbit"] = zeroorbit
+        return_dict["orbits"] = len(return_dict["orbit_nums"])
+        #return_dict["zeroorbit"] = zeroorbit
         return_dict["children"] = []
         for pref in prefs:
             return_dict["children"].append(

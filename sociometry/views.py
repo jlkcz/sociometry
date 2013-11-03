@@ -191,8 +191,10 @@ def diagram(classid, type):
     if not m.ClassModel.isClosed(classid):
         flash(u"Tato třída ještě není uzavřená, nelze si prohlížet sociogramy", "danger")
         return redirect(url_for("view_class", classid=classid))
-    orbits = m.QuestionnaireModel.getOrbitCount(classid, type)
+    orbit_nums = m.QuestionnaireModel.getOrbitNums(classid, type)
+    orbits = len(orbit_nums)
     load = m.DiagramModel.hasSavedDiagram(classid, type)
+
     return render_template("diagram.html", classid=classid, type=type, loader=load, orbits=orbits)
 
 

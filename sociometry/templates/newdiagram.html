@@ -1,6 +1,7 @@
     $.getJSON("{{ url_for('api_diagram_data', classid=classid, type=type) }}", function(data, textStatus, jqXHR){
         var config = data;
-        //helper function for randomly distributing children on graph
+
+    //helper function for randomly distributing children on graph
         function randompoint(){
             return g.point(Math.round(Math.random()*1000),Math.round(Math.random()*1000))
         }
@@ -89,17 +90,10 @@
         }
 
         //puts all orbits on graph
-        function makeOrbits(orbits, zeroorbit){
+        function makeOrbits(orbits){
             var realorbits = []
-            console.log(zeroorbit)
             for (var i=0;i<orbits;i++){
-                if(zeroorbit){
-                    orbitnum = orbits-i-1
-                }
-                else{
-                    orbitnum = orbits-i
-                }
-                realorbits[i] = ring(centerpoint.x, centerpoint.y, (i+1)*120, orbitnum)
+                realorbits[i] = ring(centerpoint.x, centerpoint.y, (i+1)*120, config.orbit_nums[i])
             }
             return realorbits
         }
