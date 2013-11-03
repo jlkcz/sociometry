@@ -56,11 +56,12 @@ class ClassExporter(object):
         worksheet = self.worksheet_relationships
         std_style = self.__cs({"top": 1, "bottom": 1, "left": 4, "right": 4, "font": "Arial", "size": 10, "align": "center"})
         bold_style = self.__cs({"bold": True, "top": 1, "bottom": 1, "left": 4, "right": 4, "font": "Arial", "size": 10, "align": "center"})
-        rotated_style = self.__cs({"rotation": 90, "bold": True, "top": 1, "bottom": 1, "left": 4, "right": 4, "font": "Arial", "size": 10, "align": "center"})
+        rotated_style = self.__cs({"rotation": 90, "bold": False, "top": 1, "bottom": 1, "left": 4, "right": 4, "font": "Arial", "size": 10, "align": "center"})
 
         id2column = {}
         worksheet.set_column(0, 0, 2)
-        worksheet.set_column(2, 60, 2)
+        worksheet.set_column(1, 1, 20)
+        worksheet.set_column(2, 60, 2.5)
 
         #Write numbers on top
         for x in range(1, len(children)+1):
@@ -78,7 +79,7 @@ class ClassExporter(object):
             childdata = children[childid]
             worksheet.write(row+inc, col, childdata["name"], std_style)
             worksheet.write(row, col+inc, childdata["name"], rotated_style)
-            worksheet.set_row(row, 60)
+            worksheet.set_row(row, 80)
             id2column[childid] = col+inc
 
         #Write relationship data
@@ -133,7 +134,7 @@ class ClassExporter(object):
         # also writes the relationship table :-)
         row += self._writeRelationshipTable(row, col, children, friendships)
 
-        worksheet.set_row(row, 30)
+        worksheet.set_row(row, 20)
         #Skip one line between
         row += 1
 
@@ -148,10 +149,10 @@ class ClassExporter(object):
         ws = self.worksheet_overview
         #set width
         ws.set_column(0, 2, 2)
-        ws.set_column(3, 3, 8)
+        ws.set_column(3, 3, 18)
         ws.set_column(4, 10, 2)
-        ws.set_column(11, 11, 13)
-        ws.set_column(12, 12, 5)
+        ws.set_column(11, 11, 16)
+        ws.set_column(12, 12, 10)
         ws.set_column(13, 20, 2)
         ws.set_column(21, 24, 4)
 
@@ -272,10 +273,10 @@ class ClassExporter(object):
         col = 0
         #column widths
         ws.set_column(0, 0, 10)
-        ws.set_column(1, 1, 15)
+        ws.set_column(1, 1, 20)
         ws.set_column(2, 2, 10)
         ws.set_column(3, 3, 7)
-        ws.set_column(4, 4, 15)
+        ws.set_column(4, 4, 20)
         ws.set_column(5, 5, 10)
 
         #header
@@ -323,11 +324,11 @@ class ClassExporter(object):
     def _writeQuantitativeTable(self):
         u"""Writes quantitative table from DB to Excel"""
         ws = self.worksheet_quantitative
-        ws.set_column(0, 0, 18, self.__cs({"font": "Arial", "size": 10}))
+        ws.set_column(0, 0, 25, self.__cs({"font": "Arial", "size": 10}))
         ws.set_column(1, 1, 3, self.__cs({"font": "Arial", "size": 10}))
         ws.set_column(2, 2, 5, self.__cs({"font": "Arial", "size": 10}))
         ws.set_column(3, 3, 1, self.__cs({"font": "Arial", "size": 10}))
-        ws.set_column(4, 4, 28, self.__cs({"font": "Arial", "size": 10}))
+        ws.set_column(4, 4, 39, self.__cs({"font": "Arial", "size": 10}))
         ws.set_column(5, 5, 6, self.__cs({"font": "Arial", "size": 10}))
         ws.set_column(6, 6, 6, self.__cs({"font": "Arial", "size": 10}))
 
