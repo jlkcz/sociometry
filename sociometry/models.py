@@ -347,8 +347,8 @@ class QuestionnaireModel(BaseDb):
                     (SELECT SUM(scale1+scale2+scale3+scale4+scale5) FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid)) AS positive_feelings,
                     (SELECT SUM(result) FROM(
                         SELECT
-                        	CASE WHEN yesnoquest1=0 OR yesnoquest1 IS NULL THEN 1 ELSE 0 END +
-                        	CASE WHEN yesnoquest2=0 OR yesnoquest2 IS NULL THEN 1 ELSE 0 END +
+                        	CASE WHEN yesnoquest1=0 THEN 1 ELSE 0 END +
+                        	CASE WHEN yesnoquest2=0 THEN 1 ELSE 0 END +
                         	CASE WHEN yesnoquest3=0 OR yesnoquest3 IS NULL THEN 0 ELSE 1 END +
                         	CASE WHEN yesnoquest4=0 OR yesnoquest4 IS NULL THEN 0 ELSE 1 END +
                         	CASE WHEN yesnoquest5=0 OR yesnoquest5 IS NULL THEN 0 ELSE 1 END
