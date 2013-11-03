@@ -519,7 +519,7 @@ class ClassExporter(object):
         ws.write_formula("G21", "=F21/B5*100", std_style)
         ws.write_formula("G22", "=F22/B5*100", bottom_style)
         #fifth
-        ws.write("F24", u'=(COUNTIF(Kvalitativní!F5:F115,">=0")', self.__cs({"top": 2, "bottom": 2, "font": "Arial", "size": 10}))
+        ws.write("F24", u'=(COUNTIF(Kvalitativní!F5:F115,">=0"))', self.__cs({"top": 2, "bottom": 2, "font": "Arial", "size": 10}))
         ws.write("G24", u'=(COUNTIF(Kvalitativní!F5:F115,">=0")/B4)*100', self.__cs({"top": 2, "bottom": 2, "font": "Arial", "size": 10}))
         #sixth
         ws.write("G26", data["bidirectional_friends"], top_style)
