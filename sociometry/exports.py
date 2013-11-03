@@ -244,7 +244,7 @@ class ClassExporter(object):
             #Jméno žáka
             ws.write(row+inc, 11, line["name"], def_style)
             #záporné body
-            ws.write(row+inc, 12, antipathy_str, def_style)
+            ws.write(row+inc, 12, antipathy_str, nega_style)
             #orbita
             ws.write(row+inc, 13, eiz(antipathies2orbit[line["antipathies"]]), def_style)
             #traits
