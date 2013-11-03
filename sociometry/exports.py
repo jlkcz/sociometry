@@ -92,13 +92,14 @@ class ClassExporter(object):
             worksheet.write(row+inc, 0, inc, std_style)
             worksheet.write_string(row+inc, id2column[childid], "X", std_style)
 
+        inc += 1
         #Write sum formulas to the bottom
         for i in range(1, len(children)+1):
             height = len(children)
             worksheet.write_formula(row+inc, col+i, '=SUM({}:{})'.format(
                 xl_rowcol_to_cell(row+1, col+i),
                 xl_rowcol_to_cell(row+height, col+i)
-            ), std_style)
+            ), bold_style)
         inc += 1
 
         #we return our height
