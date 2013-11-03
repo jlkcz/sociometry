@@ -410,7 +410,7 @@ class QuestionnaireModel(BaseDb):
                     (SELECT SUM(result) FROM(
                         SELECT CASE WHEN traits6 IS NULL THEN 0 ELSE 1 END + CASE WHEN traits7 IS NULL THEN 0 ELSE 1 END + CASE WHEN traits8 IS NULL THEN 0 ELSE 1 END + CASE WHEN traits9 IS NULL THEN 0 ELSE 1 END + CASE WHEN traits10 IS NULL THEN 0 ELSE 1 END AS Result
                         FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid))) AS traits_negative,
-                    (SELECT COUNT(*) FROM questionnaires WHERE yesnoquest1=0 AND yesnoquest2=1 AND child IN (SELECT id FROM children WHERE classid=:classid)) AS empathy
+                    (SELECT COUNT(*) FROM questionnaires WHERE yesnoquest1=0 AND yesnoquest2=1 AND child IN (SELECT id FROM children WHERE class=:classid)) AS empathy
                       FROM classes WHERE id=:classid""", {"classid": classid}).fetchone()
         pass
 
