@@ -193,8 +193,9 @@ class ClassExporter(object):
         else:
             an_start = 1
 
-        friendships2orbit = {value: key for key, value in enumerate(sorted(friendships), start=fr_start)}
-        antipathies2orbit = {value: key for key, value in enumerate(sorted(antipathies), start=an_start)}
+        #obsolete as we now need real number, not renumbered to orbits
+        #friendships2orbit = {value: key for key, value in enumerate(sorted(friendships), start=fr_start)}
+        #antipathies2orbit = {value: key for key, value in enumerate(sorted(antipathies), start=an_start)}
 
         def_style_dict = {
             "font": "Arial",
@@ -232,7 +233,8 @@ class ClassExporter(object):
             #Kladné body
             ws.write(row+inc, 3, friend_str, posi_style)
             #Orbita
-            ws.write(row+inc, 4, eiz(friendships2orbit[line["friendships"]]), def_style)
+            #ws.write(row+inc, 4, eiz(friendships2orbit[line["friendships"]]), def_style)
+            ws.write(row+inc, 4, eiz(line["friendships"]), def_style)
             #traits...
             ws.write(row+inc, 5, eiz(line["traits1"]), posi_style)
             ws.write(row+inc, 6, eiz(line["traits2"]), posi_style)
@@ -246,7 +248,8 @@ class ClassExporter(object):
             #záporné body
             ws.write(row+inc, 12, antipathy_str, nega_style)
             #orbita
-            ws.write(row+inc, 13, eiz(antipathies2orbit[line["antipathies"]]), def_style)
+            #ws.write(row+inc, 13, eiz(antipathies2orbit[line["antipathies"]]), def_style)
+            ws.write(row+inc, 13, eiz(line["antipathies"]), def_style)
             #traits
             ws.write(row+inc, 14, eiz(line["traits6"]), nega_style)
             ws.write(row+inc, 15, eiz(line["traits7"]), nega_style)
