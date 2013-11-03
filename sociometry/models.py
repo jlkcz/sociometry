@@ -354,7 +354,7 @@ class QuestionnaireModel(BaseDb):
                         	CASE WHEN yesnoquest5=0 OR yesnoquest5 IS NULL THEN 0 ELSE 1 END
                         AS Result
                         FROM questionnaires WHERE child IN (SELECT id FROM children WHERE class=:classid))) AS quality,
-                    (SELECT COUNT(*)/2 AS count FROM (
+                    (SELECT COUNT(*) AS count FROM (
                         SELECT DISTINCT A.child,A.friend,B.friend,B.child FROM (
                             SELECT child, friend1 AS friend FROM questionnaires WHERE friend1 IS NOT NULL AND child IN (SELECT id FROM children WHERE class=:classid)
                             UNION
@@ -371,7 +371,7 @@ class QuestionnaireModel(BaseDb):
                         ) B
                         WHERE A.child=B.friend AND B.child=A.friend
                     )) AS bidirectional_friends,
-                                        (SELECT COUNT(*)/2 AS count FROM (
+                                        (SELECT COUNT(*) AS count FROM (
                         SELECT DISTINCT A.child,A.antipathy,B.antipathy,B.child FROM (
                             SELECT child, antipathy1 AS antipathy FROM questionnaires WHERE antipathy1 IS NOT NULL AND child IN (SELECT id FROM children WHERE class=:classid)
                             UNION
