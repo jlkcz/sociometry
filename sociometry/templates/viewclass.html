@@ -84,9 +84,13 @@
                         <tr>
                             <td style="width:10%">{{ child.classid }}</td>
                             <td>{{ child.name }}</td>
+                            {% if child.qid %}
+                            <td><a href="/view/questionnaire/{{ child.id }}" class="btn btn-info"><span class="glyphicon glyphicon-list"></span>&nbsp;Již vyplněno (zobrazit)</a></td>
+                            {% else %}
                             <td><a href="/input/{{ child.id }}" class="btn btn-primary{% if child.qid %} disabled{% endif %}">{% if child.qid %}<span class="glyphicon glyphicon-floppy-disk"></span>&nbsp;Již vyplněno{% else %}<span class="glyphicon glyphicon-plus"></span>&nbsp;Vyplnit dotazník{% endif %}</a></td>
+                            {% endif %}
                             <td>{% if child.qid %}<button class="btn btn-warning" onclick="confirmQuestDeletion({{ child.id }})"><span class="glyphicon glyphicon-floppy-remove"></span>&nbsp;Smazat dotazník</button>{% endif %}</td>
-                            <td><button class="btn btn-danger" onclick="confirmDeletion({{ child.id }})"><span class="glyphicon glyphicon-remove"></span>&nbsp; Smazat žáka</button></td>
+                            <td><button class="btn btn-danger" onclick="editChild({{child.id}},'{{child.name}}')"><span class="glyphicon glyphicon-edit"></span>&nbsp; Přejmenovat{%if completion == 0%}nebo smazat{%endif%} žáka</button></td>
                         </tr>
                         {% endfor %}
                     </table>
@@ -131,23 +135,6 @@
         </div><!-- /example -->
     </div>
 </div>
-<div class="modal fade" id="deletionModal">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 class="modal-title">Potvrďte smazání</h4>
-      </div>
-      <div class="modal-body">
-        <p>Opravdu chcete smazat tohoto žáka? Nenávratně s ním smažete i jeho dotazník</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Zrušit</button>
-        <a href="#" id="deletionLink" type="button" class="btn btn-danger">Smazat!</a>
-      </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
 <div class="modal fade" id="questDeletionModal">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -184,12 +171,31 @@
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
+<div class="modal fade" id="editModal">
+  <div class="modal-dialog">
+    <form role="form" action="/modify/child" method="POST" id="modifychildform">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Upravit jméno žáka: <span id="childname"></span></h4>
+      </div>
+      <div class="modal-body">
+          <div class="form-group">
+            <label for="newname">Zadejte nové jméno</label>
+            <input type="text" class="form-control" id="newname" name="newname" placeholder="Nové jméno">
+            <input type="hidden" name="classid" value="{{classdata.id}}">
+          </div>
+      </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Zrušit</button>
+        <button type="submit" class="btn btn-warning">Přejmenovat žáka</button>
+        {% if completion == 0 %}<a href="#" id="deletionLink" type="button" onclick="return window.confirm('Opravdu chcete smazat tohoto žáka? Nenávratně s ním smažete i jeho dotazník!');" class="btn btn-danger">Smazat žáka!</a>{%endif%}
+      </div>
+    </div><!-- /.modal-content -->
+    </form>
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 <script type="text/javascript">
-    function confirmDeletion(childid){
-        $("#deletionLink").attr('href','/delete/child/'+childid);
-        $("#deletionModal").modal();
-    }
-
     function confirmQuestDeletion(childid){
         $("#questDeletionLink").attr('href','/delete/questionnaire/'+childid);
         $("#questDeletionModal").modal();
@@ -199,5 +205,12 @@
         $("#reopeningModal").modal();
     }
 
+    function editChild(childid, name){
+        $("#childname").text(name);
+        $("#newname").attr("value", name);
+        $("#modifychildform").attr("action", "/modify/child/"+childid);
+        $("#deletionLink").attr('href','/delete/child/'+childid);
+        $("#editModal").modal();
+    }
 </script>
 {% endblock %}

@@ -134,6 +134,13 @@ class ChildrenModel(BaseDb):
         return True
 
     @staticmethod
+    def changeName(childid, newname):
+        ChildrenModel.begin()
+        g.cur.execute("UPDATE children SET name=? WHERE id=?", [newname, childid])
+        ChildrenModel.commit()
+        return g.cur.rowcount
+
+    @staticmethod
     def getByClass(classid):
         return g.cur.execute("""SELECT children.id AS id,class,name,gender,classid,questionnaires.id AS qid
                              FROM children LEFT JOIN questionnaires ON questionnaires.child = children.id

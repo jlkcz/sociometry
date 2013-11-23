@@ -140,7 +140,22 @@ def view_class(classid):
 
 @app.route("/view/questionnaire/<int:qid>")
 def view_questionnaire(qid):
-    pass
+    questionnaire_data = m.QuestionnaireModel.getData(qid)
+    return render_template("viewquestionnaire.html", questionnaire=questionnaire_data)
+
+
+@app.route("/modify/child/<int:childid>", methods=["POST"])
+def modify_child(childid):
+    if not (childid and request.form["newname"]):
+        flash(u"Jméno žáka nesmí být prázdné!", "danger")
+        return redirect(url_for("view_class", classid=request.form["classid"]) + "?tab=children")
+    changed = m.ChildrenModel.changeName(childid, request.form["newname"])
+    if changed:
+        flash(u"Dítě úspěšně změněno","success")
+    else:
+        flash(u"Takové dítě neexistuje","warning")
+    return redirect(url_for("view_class", classid=request.form["classid"]) + "?tab=pupils")
+
 
 @app.route("/modify/class/<int:classid>", methods=["POST"])
 def modify_class(classid):
