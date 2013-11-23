@@ -59,5 +59,10 @@
     {% endwith %}
     {% block body %}{% endblock %}
     </div><!-- /.container -->
+  {% if request.args.get('tab') %}
+  <script type="text/javascript">
+      $('#myTab a[href="#{{request.args.get('tab')}}"]').tab('show')
+  </script>
+  {% endif %}
   </body>
 </html>
