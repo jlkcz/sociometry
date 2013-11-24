@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Diagram{% endblock %}
+{% block title %}Sociogram{%if type=="friend"%} přátelství ve třídě{%else%} antipatií ve třídě{%endif%}{% endblock %}
 {% block specialloads %}
     <script src="{{url_for('static',filename='js/joint.js')}}"></script>
     <script src="{{url_for('static',filename='js/joint.shapes.sociometry.js')}}"></script>
@@ -15,6 +15,7 @@
 <div class="container">
     <div class="row">
         <div class="col-md-2">
+            <h4>{%if type=="friend"%}Přátelství ve třídě{%else%}Antipatie ve třídě{%endif%}</h4>
             <button class="btn btn-default btn-block btn-primary" id="saveButton"><span class="glyphicon glyphicon-floppy-disk"></span>&nbsp;Uložit</button>
             <button class="btn btn-default btn-block btn-primary" id="loadButton"><span class="glyphicon glyphicon-floppy-open"></span>&nbsp;Načíst</button>
             <button class="btn btn-default btn-block btn-primary" onclick="downloadAsImage();"><span class="glyphicon glyphicon-download-alt"></span>&nbsp;Obrázek</button>
