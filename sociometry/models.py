@@ -54,6 +54,11 @@ class ClassModel(BaseDb):
         return True
 
     @staticmethod
+    def getClassmates(classid, childid):
+        cm_data = g.cur.execute("SELECT id,name FROM children WHERE class=? AND id!=? ORDER BY gender, name", [classid, childid]).fetchall()
+        return [{"id": child["id"], "name": child["name"]} for child in cm_data]
+
+    @staticmethod
     def getAll():
         return g.cur.execute("SELECT * FROM classes ORDER BY created DESC").fetchall()
 
@@ -219,6 +224,12 @@ class QuestionnaireModel(BaseDb):
                       :traits6, :traits7, :traits8, :traits9, :traits10)''', formdata)
         QuestionnaireModel.commit()
         return g.cur.lastrowid
+
+    @staticmethod
+    def getData(questionnaireid):
+        return g.cur.execute("""
+            SELECT * FROM questionnaires WHERE child=?
+        """, [questionnaireid]).fetchone()
 
     @staticmethod
     def getOrbitNums(classid, type):

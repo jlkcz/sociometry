@@ -93,8 +93,7 @@ def questionnaire_input(childid):
             flash(u"Tento žák má již dotazník vyplněn", "danger")
         return redirect(redirect_url("view_class", classid=child_data["class"]))
     #GET
-    cm_data = g.cur.execute("SELECT id,name FROM children WHERE class=? AND id!=? ORDER BY gender, name", [child_data["class"], childid]).fetchall()
-    classmates = [{"id": child["id"], "name": child["name"]} for child in cm_data]
+    classmates = m.ClassModel.getClassmates(child_data["class"], childid)
     return render_template("questionnaire_input.html", child=child_data, classmates=classmates, questionnaire=m.Questionnaire())
 
 
@@ -138,10 +137,18 @@ def view_class(classid):
     return render_template("viewclass.html", classdata=classdata, children=children, completion=completion)
 
 
-@app.route("/view/questionnaire/<int:qid>")
-def view_questionnaire(qid):
-    questionnaire_data = m.QuestionnaireModel.getData(qid)
-    return render_template("viewquestionnaire.html", questionnaire=questionnaire_data)
+@app.route("/view/questionnaire/<int:childid>")
+def view_questionnaire(childid):
+    child_data = m.ChildrenModel.getData(childid)
+    if child_data is None:
+        flash(u"Takovýto žák neexistuje", "danger")
+        return redirect(url_for("index"))
+    questionnaire_data = m.QuestionnaireModel.getData(childid)
+    if questionnaire_data is None:
+        flash(u"Takovýto žák neexistuje", "danger")
+        return redirect(url_for("view_class", classid=child_data["class"]))
+    classmates = m.ClassModel.getClassmates(child_data["class"], childid)
+    return render_template("questionnaire_input.html", child=child_data, filled=questionnaire_data, questionnaire=m.Questionnaire, classmates=classmates)
 
 
 @app.route("/modify/child/<int:childid>", methods=["POST"])

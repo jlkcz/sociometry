@@ -1,19 +1,21 @@
 {% extends "base.html" %}
-{% block title %}Přepis dotazníků pro {{ child.name }}{% endblock %}
+{% block title %}{%if not filled%}Vyplněný dotazník žáka: {{ child.name }}{%else%}Přepis dotazníku pro {{ child.name }}{%endif%}{% endblock %}
 {% block body %}
 <div class="row">
     <div class="col-md-12">
-    <h2>Dotazník pro: {{ child.name }}</h2>
+    <h2>{%if not filled%}Přepis dotazníku pro {{ child.name }}{%else%}Vyplněný dotazník žáka: {{ child.name }}{%endif%}</h2>
+        {%if not filled%}
         <form role="form" class="form-horizontal" method="POST">
+        {%endif%}
             <table class="table table-bordered">
                 {% for line in questionnaire.friends %}
                 <tr>
                     <td style="width:33%"><label>{{ line.label }}</label></td>
                     <td>
                         <select class="form-control" name="{{ line.formname }}">
-                            <option value="0" selected="selected">--- Nevyplněno ---</option>
+                            <option value="0"{%if not filled%} selected="selected"{%endif%}>--- Nevyplněno ---</option>
                             {% for mate in classmates %}
-                            <option value="{{ mate.id }}">{{ mate.name }}</option>
+                            <option value="{{ mate.id }}"{%if filled[line.formname] == mate.id%} selected="selected"{%endif%}>{{ mate.name }}</option>
                             {% endfor %}
                         </select>
                     </td>
@@ -27,9 +29,9 @@
                     <td><label>{{ line.label }}</label></td>
                     <td>
                         <select class="form-control" name="{{ line.formname }}">
-                            <option value="0" selected="selected">--- Nevyplněno ---</option>
+                            <option value="0"{%if not filled%} selected="selected"{%endif%}>--- Nevyplněno ---</option>
                             {% for mate in classmates %}
-                            <option value="{{ mate.id }}">{{ mate.name }}</option>
+                            <option value="{{ mate.id }}"{%if filled[line.formname] == mate.id%} selected="selected"{%endif%}>{{ mate.name }}</option>
                             {% endfor %}
                         </select>
                     </td>
@@ -42,9 +44,9 @@
                     <td><label>Sám sebe hodnotím</label></td>
                     <td>
                         <select class="form-control" name="selfeval">
-                            <option value="0" selected="selected">--- Nevyplněno ---</option>
+                            <option value="0"{%if not filled%} selected="selected"{%endif%}>--- Nevyplněno ---</option>
                             {% for line in questionnaire.selfeval %}
-                            <option value="{{ line.value }}">{{ line.text }}</option>
+                            <option value="{{ line.value }}"{%if filled["selfeval"] == line.value%} selected="selected"{%endif%}>{{ line.text }}</option>
                             {% endfor %}
                         </select>
                     </td>
@@ -56,8 +58,8 @@
                 <tr>
                     <td><label>{{ line.text }}</label></td>
                     <td>
-                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="1">ano</label>
-                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="0">ne</label>
+                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="1"{%if filled[line.formname] == 1%} checked="checked"{%endif%}>ano</label>
+                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="0"{%if filled[line.formname] == 0%} checked="checked"{%endif%}>ne</label>
                     </td>
                 </tr>
                 {% endfor %}
@@ -69,13 +71,13 @@
                     <td><label>Vyber číslici, která nejlépe vyjadřuje míru tvých pocitů ve třídě:</label></td>
                     <td style="text-align: center;">
                         <label class="radio-inline">{{ line.mintext }}</label>
-                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="1">1</label>
-                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="2">2</label>
-                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="3">3</label>
-                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="4">4</label>
-                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="5">5</label>
-                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="6">6</label>
-                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="7">7</label>
+                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="1"{%if filled[line.formname] == 1%} checked="checked"{%endif%}>1</label>
+                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="2"{%if filled[line.formname] == 2%} checked="checked"{%endif%}>2</label>
+                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="3"{%if filled[line.formname] == 3%} checked="checked"{%endif%}>3</label>
+                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="4"{%if filled[line.formname] == 4%} checked="checked"{%endif%}>4</label>
+                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="5"{%if filled[line.formname] == 5%} checked="checked"{%endif%}>5</label>
+                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="6"{%if filled[line.formname] == 6%} checked="checked"{%endif%}>6</label>
+                        <label class="radio-inline"><input type="radio" name="{{ line.formname }}" value="7"{%if filled[line.formname] == 7%} checked="checked"{%endif%}>7</label>
                         <label class="radio-inline">{{ line.maxtext }}</label>
                     </td>
                 </tr>
@@ -88,9 +90,9 @@
                     <td style="width:33%"><label>{{ line.text }}</label></td>
                     <td>
                         <select class="form-control" name="{{ line.formname }}">
-                            <option value="0" selected="selected">--- Nevyplněno ---</option>
+                            <option value="0" {%if not filled%} selected="selected"{%endif%}>--- Nevyplněno ---</option>
                             {% for mate in classmates %}
-                            <option value="{{ mate.id }}">{{ mate.name }}</option>
+                            <option value="{{ mate.id }}"{%if filled[line.formname] == mate.id%} selected="selected"{%endif%}>{{ mate.name }}</option>
                             {% endfor %}
                         </select>
                     </td>
@@ -102,8 +104,10 @@
                 {% endif %}
                 {% endfor %}
             </table>
+        {% if not filled %}
             <input type="submit" class="btn btn-success btn-lg" value="Odeslat dotazník">
         </form>
+        {% endif %}
         <p>&nbsp;</p>
     </div>
 </div>
