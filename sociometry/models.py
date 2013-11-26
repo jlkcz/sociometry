@@ -3,7 +3,7 @@ u"""Contains model (DB) classes (static methods). """
 #Naming conventions are bit cranky (my PHP skills are interfering, but I am working on it)
 
 from __future__ import division, print_function
-from flask import g
+from flask import g, current_app
 import time
 import hashlib
 
@@ -204,24 +204,33 @@ class QuestionnaireModel(BaseDb):
         for key in Questionnaire.zeroisnullkeys:
             if formdata[key] == '0':
                 formdata[key] = None
-
-        g.cur.execute('''INSERT INTO questionnaires
-                      (child, friend1, friend2, friend3,
-                      antipathy1, antipathy2, antipathy3,
-                      selfeval,
-                      yesnoquest1, yesnoquest2, yesnoquest3, yesnoquest4, yesnoquest5,
-                      scale1, scale2, scale3, scale4, scale5,
-                      traits1, traits2, traits3, traits4, traits5,
-                      traits6, traits7, traits8, traits9, traits10
-                      )
-                      VALUES (
-                      :child, :friend1, :friend2, :friend3,
-                      :antipathy1, :antipathy2, :antipathy3,
-                      :selfeval,
-                      :yesnoquest1, :yesnoquest2, :yesnoquest3, :yesnoquest4, :yesnoquest5,
-                      :scale1, :scale2, :scale3, :scale4, :scale5,
-                      :traits1, :traits2, :traits3, :traits4, :traits5,
-                      :traits6, :traits7, :traits8, :traits9, :traits10)''', formdata)
+        if current_app.config["ALLOW_B3"]:
+            g.cur.execute('''INSERT INTO questionnaires
+                          (child, friend1, friend2, friend3,
+                          antipathy1, antipathy2, antipathy3,
+                          selfeval,
+                          yesnoquest1, yesnoquest2, yesnoquest3, yesnoquest4, yesnoquest5,
+                          scale1, scale2, scale3, scale4, scale5,
+                          traits1, traits2, traits3, traits4, traits5,
+                          traits6, traits7, traits8, traits9, traits10
+                          )
+                          VALUES (
+                          :child, :friend1, :friend2, :friend3,
+                          :antipathy1, :antipathy2, :antipathy3,
+                          :selfeval,
+                          :yesnoquest1, :yesnoquest2, :yesnoquest3, :yesnoquest4, :yesnoquest5,
+                          :scale1, :scale2, :scale3, :scale4, :scale5,
+                          :traits1, :traits2, :traits3, :traits4, :traits5,
+                          :traits6, :traits7, :traits8, :traits9, :traits10)''', formdata)
+        else:
+            g.cur.execute('''INSERT INTO questionnaires
+                          (child, friend1, friend2, friend3,
+                          antipathy1, antipathy2, antipathy3
+                          )
+                          VALUES (
+                          :child, :friend1, :friend2, :friend3,
+                          :antipathy1, :antipathy2, :antipathy3
+                          )''', formdata)
         QuestionnaireModel.commit()
         return g.cur.lastrowid
 

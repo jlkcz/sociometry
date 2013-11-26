@@ -24,15 +24,17 @@ class ClassExporter(object):
     #####################
     ### Magic methods ###
     #####################
-    def __init__(self, classid):
+    def __init__(self, classid, allow_b3=False):
+        self.allow_b3 = allow_b3
         self.classdata = m.ClassModel.getData(classid)
         self.filename = self.makeSafeFilename(self.classdata["name"]) + '.xlsx'
         self.file = StringIO.StringIO()
         self.workbook = xlsxwriter.Workbook(self.file, {'default_date_format': 'dd. mm. yy'})
         #Add all worksheets. Order is important
-        self.worksheet_overview = self.workbook.add_worksheet(name=u"Přehled")
-        self.worksheet_quantitative = self.workbook.add_worksheet(name=u"Kvantitativní")
-        self.worksheet_qualitative = self.workbook.add_worksheet(name=u"Kvalitativní")
+        if self.allow_b3:
+            self.worksheet_overview = self.workbook.add_worksheet(name=u"Přehled")
+            self.worksheet_quantitative = self.workbook.add_worksheet(name=u"Kvantitativní")
+            self.worksheet_qualitative = self.workbook.add_worksheet(name=u"Kvalitativní")
         self.worksheet_relationships = self.workbook.add_worksheet(name=u"Sociometrie")
 
     ##############################
@@ -547,9 +549,11 @@ class ClassExporter(object):
 
     def export(self):
         u"""Creates and fills XLSX file for exported class"""
-        self._writeOverviewTable()
-        self._writeQuantitativeTable()
+        if self.allow_b3:
+            self._writeOverviewTable()
+            self._writeQuantitativeTable()
+            self._writeQualitativeTable()
+
         self._writeSociometryTable()
-        self._writeQualitativeTable()
         self._finish()
         return self.file.getvalue()

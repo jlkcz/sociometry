@@ -1,3 +1,4 @@
+{% if not filled %}{% set filled = None %}{%endif%}
 {% extends "base.html" %}
 {% block title %}{%if not filled%}Vyplněný dotazník žáka: {{ child.name }}{%else%}Přepis dotazníku pro {{ child.name }}{%endif%}{% endblock %}
 {% block body %}
@@ -38,6 +39,7 @@
                     </td>
                 </tr>
                 {% endfor %}
+                {% if config["ALLOW_B3"] %}
                 <tr>
                     <td colspan="2"><hr></td>
                 </tr>
@@ -104,11 +106,12 @@
                 </tr>
                 {% endif %}
                 {% endfor %}
+        {% endif %}
             </table>
         {% if not filled %}
             <input type="submit" class="btn btn-success btn-lg" value="Odeslat dotazník">
-        </form>
         {% endif %}
+        </form>
         <p>&nbsp;</p>
     </div>
 </div>

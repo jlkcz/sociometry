@@ -12,4 +12,5 @@ class DevelopmentConfig(object):
 
 app.config.from_object(DevelopmentConfig())
 app.config["DATABASE"] = "./sociometry.db"
+app.config["ALLOW_B3"] = False
 app.run()

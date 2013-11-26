@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 from __future__ import print_function, generators
-from flask import url_for, render_template, request, g, flash, redirect, abort, Response
+from flask import url_for, render_template, request, g, flash, redirect, abort, Response, current_app
 from sociometry import app, redirect_url, models as m, exports as e
 from sqlite3 import IntegrityError
 from werkzeug.datastructures import Headers
@@ -228,7 +228,7 @@ def export_class(classid):
     if not m.ClassModel.isClosed(classid):
         flash(u"Tato třída ještě není uzavřená, nelze ji exportovat", "danger")
         return redirect(url_for("view_class", classid=classid))
-    export = e.ClassExporter(classid)
+    export = e.ClassExporter(classid, current_app.config["ALLOW_B3"])
     response = Response(export.export())
     response.headers = Headers({
             'Pragma': "public",  # required,
