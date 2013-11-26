@@ -96,6 +96,15 @@ def questionnaire_input(childid):
     classmates = m.ClassModel.getClassmates(child_data["class"], childid)
     return render_template("questionnaire_input.html", child=child_data, classmates=classmates, questionnaire=m.Questionnaire())
 
+@app.route("/update/questionnaire/<int:qid>", methods=["POST"])
+def update_questionnaire(qid):
+    insertdict = {key: value for (key, value) in request.form.items()}
+    updated = m.QuestionnaireModel.updateQuestionnaire(insertdict, qid)
+    if updated:
+        flash(u"Dotazník úspěšně změněn", u"success")
+    else:
+        flash(u"Takový dotazník neexistuje", u"warning")
+    return redirect(url_for("view_questionnaire", childid=insertdict["child"]))
 
 @app.route("/delete/<stuff>/<int:stuffid>")
 def delete(stuff, stuffid):

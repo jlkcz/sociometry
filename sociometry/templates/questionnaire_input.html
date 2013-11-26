@@ -8,6 +8,8 @@
     <h2>{%if not filled%}Přepis dotazníku pro {{ child.name }}{%else%}Vyplněný dotazník žáka: {{ child.name }}{%endif%}</h2>
         {%if not filled%}
         <form role="form" class="form-horizontal" method="POST">
+        {% else %}
+        <form role="form" action="{{url_for('update_questionnaire',qid=filled.id)}}" class="form-horizontal" method="POST">
         {%endif%}
             <table class="table table-bordered">
                 {% for line in questionnaire.friends %}
@@ -110,7 +112,11 @@
             </table>
         {% if not filled %}
             <input type="submit" class="btn btn-success btn-lg" value="Odeslat dotazník">
+        {% else %}
+            <input type="hidden" name="child" value="{{child.id}}">
+            <input type="submit" class="btn btn-warning btn-lg" value="Upravit dotazník">
         {% endif %}
+
         </form>
         <p>&nbsp;</p>
     </div>

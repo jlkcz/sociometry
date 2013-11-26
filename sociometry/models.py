@@ -235,6 +235,41 @@ class QuestionnaireModel(BaseDb):
         return g.cur.lastrowid
 
     @staticmethod
+    def updateQuestionnaire(formdata, qid):
+        QuestionnaireModel.begin()
+        formdata["qid"] = qid
+        #For unchecked checkboxes
+        for key in Questionnaire.allkeys:
+            if key not in formdata.keys():
+                formdata[key] = None
+
+        #for not filled selects
+        for key in Questionnaire.zeroisnullkeys:
+            if formdata[key] == '0':
+                formdata[key] = None
+        if current_app.config["ALLOW_B3"]:
+            g.cur.execute('''UPDATE questionnaires
+                  SET friend1=:friend1, friend2=:friend2, friend3=:friend3,
+                  antipathy1=:antipathy1, antipathy2=:antipathy2, antipathy3=:antipathy3,
+                  selfeval=:selfeval,
+                  yesnoquest1=:yesnoquest1, yesnoquest2=:yesnoquest2,
+                  yesnoquest3=:yesnoquest3, yesnoquest4=:yesnoquest4,
+                  yesnoquest5=:yesnoquest5,
+                  scale1=:scale1, scale2=:scale2, scale3=:scale3, scale4=:scale4, scale5=:scale5,
+                  traits1=:traits1, traits2=:traits2, traits3=:traits3,
+                  traits4=:traits4, traits5=:traits5, traits6=:traits6,
+                  traits7=:traits7, traits8=:traits8, traits9=:traits9,
+                  traits10=:traits10 WHERE id=:qid''', formdata)
+        else:
+            g.cur.execute('''UPDATE questionnaires
+                          SET friend1=:friend1, friend2=:friend2, friend3=:friend3,
+                          antipathy1=:antipathy1, antipathy2=:antipathy2, antipathy3=:antipathy3,
+                          WHERE id=:qid)''', formdata)
+        QuestionnaireModel.commit()
+        return g.cur.rowcount
+
+
+    @staticmethod
     def getData(questionnaireid):
         return g.cur.execute("""
             SELECT * FROM questionnaires WHERE child=?
