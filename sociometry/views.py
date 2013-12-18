@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 from __future__ import print_function, generators
-from flask import url_for, render_template, request, g, flash, redirect, abort, Response, current_app
+from flask import url_for, render_template, request, request, flash, redirect, abort, Response, current_app, after_this_request
 from sociometry import app, redirect_url, models as m, exports as e
 from sqlite3 import IntegrityError
 from werkzeug.datastructures import Headers
@@ -268,3 +268,14 @@ def get_png(key):
     })
     return response
 
+@app.route("/sociometry-shutdown")
+def shutdown():
+    @after_this_request
+    def shutdown_server(response):
+        func = request.environ.get('werkzeug.server.shutdown')
+        print(func)
+        if func is None:
+            raise RuntimeError('Not running with the Werkzeug Server')
+        func()
+        return response
+    return render_template("shutdown.html")

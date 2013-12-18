@@ -2,6 +2,8 @@
 # -*- coding: utf8 -*-
 from sociometry import app
 import os.path, sys
+import subprocess
+import time
 
 DEBUG = True
 
@@ -34,6 +36,18 @@ def find_appdata():
         appdata = os.path.expanduser(os.path.join("~", "." + APPNAME))
     return appdata
 
+
+def launch_browser():
+    time.sleep(3)
+    print("====launch_browser()====")
+    address = "http://127.0.0.1:5000"
+    if sys.platform.startswith('darwin'):
+        subprocess.call(('open', address))
+    elif os.name == 'nt':
+        os.startfile(address)
+    elif os.name == 'posix':
+        subprocess.call(('xdg-open', address))
+
 if DEBUG:
     app.config.from_object(DevelopmentConfig())
     app.config["DATABASE"] = "./sociometry.db"
@@ -42,4 +56,7 @@ else:
     app.config["DATABASE"] = find_appdata()+"/sociometry.db"
 
 app.config["ALLOW_B3"] = True
-app.run()
+
+if __name__ == "__main__":
+    app.run()
+    sys.exit(0)
