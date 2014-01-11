@@ -28,6 +28,10 @@ class ClassModel(BaseDb):
 
     @staticmethod
     def new(name, names_list, missing=0):
+        try:
+            missing = int(missing)
+        except ValueError:
+            missing = 0
         ClassModel.begin()
         g.cur.execute("INSERT INTO classes (name, created, missing) VALUES (?,?,?)", [name, time.time(), missing])
         classid = g.cur.lastrowid
