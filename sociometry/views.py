@@ -115,9 +115,9 @@ def delete(stuff, stuffid):
         return redirect(url_for("list"))
 
     if stuff == "child":
+        childclass = m.ChildrenModel.getData(stuffid)["class"]
         if m.ChildrenModel.delete(stuffid):
             flash(u"Úspěšně smazáno", "success")
-            childclass = m.ChildrenModel.getData(stuffid)["class"]
             return redirect(url_for("view_class", classid=childclass))
         else:
             flash(u"Žák neexistuje nebo je jeho třída uzavřená, nelze mazat dotazníky", "danger")
@@ -142,8 +142,16 @@ def view_class(classid):
         return redirect(url_for("index"))
 
     children = m.ChildrenModel.getByClass(classid)
-    completion = m.ClassModel.getCompletionPercentage(classid)
-    return render_template("viewclass.html", classdata=classdata, children=children, completion=completion)
+
+    #Hacks for empty class
+    empty = False
+    if len(children) == 0:
+        empty = True
+    try:
+        completion = m.ClassModel.getCompletionPercentage(classid)
+    except ZeroDivisionError:
+        completion = 0
+    return render_template("viewclass.html", classdata=classdata, children=children, completion=completion, empty=empty)
 
 
 @app.route("/view/questionnaire/<int:childid>")
