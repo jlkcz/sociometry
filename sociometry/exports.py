@@ -11,6 +11,7 @@ from xlsxwriter.utility import xl_rowcol_to_cell
 import models as m
 import datetime
 import StringIO
+import unicodedata
 
 def eiz(value):
     u"""Empty-if-zero: Return empty string if zero"""
@@ -543,6 +544,10 @@ class ClassExporter(object):
         u"""Takes filename and makes it safe for dumb filesystems. Adds zero if name is short"""
         keepcharacters = (' ', '.', '_')
         proposed_name = "".join(c for c in inputstr if c.isalnum() or c in keepcharacters).rstrip()
+        #removes all accented characters
+        nkfd_form = unicodedata.normalize('NFKD', proposed_name)
+        proposed_name = nkfd_form.encode('ASCII', 'ignore')
+
         if len(proposed_name) < 2:
             proposed_name += "0"
         return proposed_name
