@@ -53,10 +53,10 @@ joint.shapes.sm.OneWay = joint.dia.Link.extend({
     defaults: joint.util.deepSupplement({
         attrs: {
             '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' },
-            '.connection':{stroke:'black', fill:"transparent", 'stroke-width':1},
+            '.connection':{stroke:'black', fill:"transparent", 'stroke-width':1, 'pointer-events': 'none'},
             '.marker-vertices': { fill:"#cccccc" },
             '.marker-arrowheads': { display: 'none' },
-            '.connection-wrap': { display: 'none' },
+            '.connection-wrap': { display: 'none', 'pointer-events': 'none' },
             '.link-tools': { display : 'none' }
         },
         type: "sm.OneWay",
@@ -69,7 +69,7 @@ joint.shapes.sm.TwoWay = joint.dia.Link.extend({
     defaults: joint.util.deepSupplement({
         attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' },
 	        '.marker-source': { d: 'M 10 0 L 0 5 L 10 10 z' },
-	        '.connection':{stroke:'black', fill:"transparent", 'stroke-width':5},
+	        '.connection':{stroke:'black', fill:"transparent", 'stroke-width':5, 'pointer-events': 'none'},
 	        '.marker-vertices': { fill:"#cccccc" },
             '.marker-arrowheads': { display: 'none' },
             '.connection-wrap': { display: 'none', fill:"white" },
