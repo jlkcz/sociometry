@@ -56,6 +56,7 @@
                 //labels: [{ position: .5, attrs: { text: { text: label || '', 'font-weight': 'bold' } } }]
                 //vertices: vertices || []
             });
+	    cell.set('connector', { name: 'normal' }); //makes lines straight
             graph.addCell(cell);
             return cell;
         }
@@ -70,7 +71,8 @@
                 //labels: [{ position: .5, attrs: { text: { text: label || '', 'font-weight': 'bold' } } }]
                 //vertices: vertices || []
             });
-            graph.addCell(cell);
+	    cell.set('connector', { name: 'normal' }); //makes lines straight
+	    graph.addCell(cell);
             return cell;
         }
 
@@ -117,7 +119,7 @@
                 var likes = links[i]["likes"];
                 ret_links[i] = oneWayLink(children_list[who], children_list[likes])
             }
-            return ret_links
+	    return ret_links
         }
 
         //puts all two way links on graph
