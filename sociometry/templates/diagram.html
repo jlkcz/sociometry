@@ -147,7 +147,7 @@ $(document).ready(function(){
 
 
 function downloadAsImage(){
-    var svg = document.getElementById("paper").innerHTML;
+    var svg = document.getElementById("paper").getElementsByTagName("svg")[0].outerHTML;
 
     $.ajax({
     url: "{{ url_for("api_svg_to_png") }}",
