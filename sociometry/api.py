@@ -1,10 +1,11 @@
 # -*- coding: utf8 -*-
 from __future__ import print_function, generators
 import json
-from flask import request, jsonify
+from flask import request, jsonify, send_file
 from sociometry import app, models as m
 import tempfile
 import cairosvg
+from io import BytesIO
 
 @app.route("/api/diagram/<int:classid>/<type>")
 def api_diagram_data(classid, type):
@@ -26,8 +27,9 @@ def api_get_last_graph(classid, type):
 
 @app.route("/api/svg/to/png", methods=["POST"])
 def api_svg_to_png():
-    with tempfile.TemporaryFile(suffix=".png", prefix="tmp") as out:
-        cairosvg.svg2png(bytestring=request.form["pcontent"], write_to=out)
-        out.seek(0)
-        key = m.TempfileModel.store_file(request.form["filename"], buffer(out.read()))
-        return jsonify({"name": key})
+    out = BytesIO()
+    outfile = open('/tmp/testcairo.png', 'wb')
+    cairosvg.svg2png(bytestring=request.form["pcontent"], write_to=outfile)
+    out.seek(0)
+    out.close()
+    send_file(out, filename=request.form["filename"], mimetype="image/png", as_attachment=True)

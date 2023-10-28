@@ -6,19 +6,15 @@
         <h2>Nastavit pohlaví u třídy "{{ class_name }}"</h2>
         <p class="lead">Zaškrtněte všechny dívky</p>
         <form role="form" method="POST">
-            {% set i = 0 %}
-            {%  for child in children  %}
-                    {% if i%4 == 0  %}
+            {%  for group in children | batch(4, '') %}
                     <div class="input-lg">
-                    {% endif %}
+                    {% for child in group if child %} 
                     <label class="checkbox-inline">
                         <input type="checkbox" name="females" value="{{ child.id }}"{% if child.gender %} checked="checked"{% endif %}>
                         {{ child.name }}
                     </label>
-                {% if i%4 == 3  %}
+                    {% endfor %}
                 </div>
-                {% endif %}
-                {% set i = i+1 %}
             {% endfor %}
             {% if children|length %4 != 0 %}
                 </div>

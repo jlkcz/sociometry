@@ -29,8 +29,9 @@ def create_db_file():
 
 
 def init_db():
-    with app.open_resource('db.sql') as f:
-            g.db.cursor().executescript(f.read())
+    with app.open_resource('db.sql','r') as f:
+            script = f.read()
+            g.db.cursor().executescript(script)
             g.db.commit()
 
 

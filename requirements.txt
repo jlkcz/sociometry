@@ -1,12 +1,6 @@
 CairoSVG==1.0.1
-Flask==0.10.1
-Jinja2==2.7.1
-MarkupSafe==0.18
-Werkzeug==0.9.4
-XlsxWriter==0.4.3
-argparse==1.2.1
+Flask<=2
+Werkzeug==2.2.0
+XlsxWriter<4.0
 cairocffi==0.5.1
-cffi==0.7.2
-itsdangerous==0.23
-pycparser==2.10
-wsgiref==0.1.2
+

@@ -18,7 +18,7 @@
             <h4>{%if type=="friend"%}Přátelství ve třídě{%else%}Antipatie ve třídě{%endif%}</h4>
             <button class="btn btn-default btn-block btn-primary" id="saveButton"><span class="glyphicon glyphicon-floppy-disk"></span>&nbsp;Uložit</button>
             <button class="btn btn-default btn-block btn-primary" id="loadButton"><span class="glyphicon glyphicon-floppy-open"></span>&nbsp;Načíst</button>
-            <button class="btn btn-default btn-block btn-primary" onclick="downloadAsImage();"><span class="glyphicon glyphicon-download-alt"></span>&nbsp;Obrázek</button>
+            <button class="btn btn-default btn-block btn-primary" id="downloadButton"><span class="glyphicon glyphicon-download-alt"></span>&nbsp;Obrázek</button>
         </div>
         <div class="col-md-10">
             <div id="paper">
@@ -26,7 +26,7 @@
         </div>
     </div>
 </div>
-
+<canvas id="canvas"></canvas>
 
 <script type="text/javascript">
 $(document).ready(function(){
@@ -90,7 +90,7 @@ $(document).ready(function(){
             model: graph,
             elementView: ConstraintElementView
         });
-
+        paper.drawBackground({ color: '#ffffff' });    
 
 
     {% if not loader %}
@@ -145,26 +145,54 @@ $(document).ready(function(){
 });
 
 
+function triggerDownload(imgURI) {
+  const a = document.createElement('a');
+        a.download = 'diagram_{{classid}}_{{type}}.png'; // filename
+  a.target = '_blank';
+  a.href = imgURI;
 
-function downloadAsImage(){
-    var svg = document.getElementById("paper").getElementsByTagName("svg")[0].outerHTML;
-
-    $.ajax({
-    url: "{{ url_for("api_svg_to_png") }}",
-    type: "POST",
-    data: {"pcontent": svg, "filename": "{{classid}}_{{ type }}" },
-    success: function (data) {
-        window.location = "/get/png/"+data.name
-    },
-    error: function(jqXHR,error, errorThrown) {
-        if(jqXHR.status){
-            //alert(jqXHR.responseText);
-        }else{
-            toastr["error"]("Někde se stala chyba!")
-        }
-    }
-});
+  // trigger download button
+  // (set `bubbles` to false here.
+  // or just `a.click()` if you don't care about bubbling)
+  a.dispatchEvent(new MouseEvent('click', {
+    view: window,
+    bubbles: false,
+    cancelable: true
+  }));
 }
+
+const btn = document.getElementById('downloadButton');
+btn.addEventListener('click', function () {
+  const svgNode = document.getElementById("paper").getElementsByTagName("svg")[0]
+  const svgString = (new XMLSerializer()).serializeToString(svgNode);
+  const svgBlob = new Blob([svgString], {
+    type: 'image/svg+xml;charset=utf-8'
+  });
+
+  const DOMURL = window.URL || window.webkitURL || window;
+  const url = DOMURL.createObjectURL(svgBlob);
+
+  const image = new Image();
+  image.width = svgNode.width.baseVal.value;
+  image.height = svgNode.height.baseVal.value;
+  image.src = url;
+  image.onload = function () {
+    const canvas = document.getElementById('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+
+
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(image, 0, 0);
+    DOMURL.revokeObjectURL(url);
+
+    const imgURI = canvas
+      .toDataURL('image/png')
+      .replace('image/png', 'image/octet-stream');
+    triggerDownload(imgURI);
+  };
+});
+
 
 
 </script>

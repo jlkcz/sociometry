@@ -31,6 +31,7 @@
                                 <a href="{{ url_for("export_class", classid=classdata.id) }}" class="btn btn-default btn-block">
                                     <span class="glyphicon glyphicon-download-alt"></span>&nbsp;Stáhnout výstup</a>
                                 <p class="help-block">Ve výstupu nejsou zahrnuty sociogramy, ty musíte stáhnout ručně.</p>
+                                <p class="bg-warning"><b>Občas se po stažení nespočítají správně všechny buňky. Přepočítání lze vyvolat klávesovou zkratkou Ctrl+Shift+F9</b></p>
                                 <p>&nbsp;</p>
                                 <p>Otevřít třídu a provést úpravy.</p>
                                 <button class="btn btn-block btn-default" onclick="confirmReopening();">
@@ -110,23 +111,16 @@
                 {% if not empty %}
                     <p class="lead">Zaškrtněte všechny dívky</p>
                     <form role="form" method="POST" action="{{ url_for("manage_gender",classid=children.0.class) }}">
-                    {% set i = 0 %}
-                    {%  for child in children  %}
-                        {% if i%4 == 0  %}
+                    {%  for group in children|batch(4,'') %}
                         <div class="input-lg">
-                        {% endif %}
+                            {% for child in group if child%}
                             <label class="checkbox-inline">
                                 <input type="checkbox" name="females" value="{{ child.id }}"{% if child.gender %} checked="checked"{% endif %}>
                                 {{ child.name }}
                             </label>
-                        {% if i%4 == 3  %}
+                            {%endfor%}
                         </div>
-                        {% endif %}
-                        {% set i = i+1 %}
                     {% endfor %}
-                    {% if children|length %4 != 0 %}
-                        </div>
-                    {% endif %}
                         <input type="hidden" name="redirect" value="{{ url_for("view_class", classid=children.0.class) }}">
                         <button type="submit" class="btn btn-default">Nastavit pohlaví</button>
                     </form>

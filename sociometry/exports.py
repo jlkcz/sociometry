@@ -8,10 +8,11 @@
 
 import xlsxwriter
 from xlsxwriter.utility import xl_rowcol_to_cell
-import models as m
+from . import models as m
 import datetime
-import StringIO
 import unicodedata
+from io import BytesIO
+from pprint import pprint
 
 def eiz(value):
     u"""Empty-if-zero: Return empty string if zero"""
@@ -29,8 +30,9 @@ class ClassExporter(object):
         self.allow_b3 = allow_b3
         self.classdata = m.ClassModel.getData(classid)
         self.filename = self.makeSafeFilename(self.classdata["name"]) + '.xlsx'
-        self.file = StringIO.StringIO()
+        self.file = BytesIO()
         self.workbook = xlsxwriter.Workbook(self.file, {'default_date_format': 'dd. mm. yy'})
+
         #Add all worksheets. Order is important
         if self.allow_b3:
             self.worksheet_overview = self.workbook.add_worksheet(name=u"Přehled")
@@ -50,6 +52,8 @@ class ClassExporter(object):
     def _finish(self):
         u"""Closes excel file so it's written on disk"""
         self.workbook.close()
+        self.file.seek(0)
+        return True
 
     ############################
     ### Private main methods ###
@@ -162,7 +166,7 @@ class ClassExporter(object):
         #write headers
         ws.merge_range("A1:H1", u'Dotazník B3 - přehled', self.__cs({"bold": True, "size": 10}))
         ws.write_string("L1", self.classdata["name"], self.__cs({"bold": True, "size": 10}))
-        ws.merge_range("T1:W1", u'Sebráno: ' + unicode(datetime.datetime.fromtimestamp(self.classdata["created"]).strftime("%d.%m.%Y")), self.__cs({"bold": True, "size": 10}))
+        ws.merge_range("T1:W1", u'Sebráno: ' + str(datetime.datetime.fromtimestamp(self.classdata["created"]).strftime("%d.%m.%Y")), self.__cs({"bold": True, "size": 10}))
 
         row = 2
         col = 0
@@ -550,7 +554,7 @@ class ClassExporter(object):
 
         if len(proposed_name) < 2:
             proposed_name += "0"
-        return proposed_name
+        return proposed_name.decode('ASCII')
 
     def export(self):
         u"""Creates and fills XLSX file for exported class"""
@@ -561,4 +565,4 @@ class ClassExporter(object):
 
         self._writeSociometryTable()
         self._finish()
-        return self.file.getvalue()
+        return self

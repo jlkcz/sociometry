@@ -12,7 +12,8 @@ class BaseDb(object):
     u"""Abstract class providing transaction operations"""
     @staticmethod
     def begin():
-        g.db.execute("BEGIN TRANSACTION;")
+        pass
+#        g.db.execute("BEGIN TRANSACTION;")
 
     @staticmethod
     def commit():
@@ -41,7 +42,8 @@ class ClassModel(BaseDb):
 
     @staticmethod
     def getData(classid):
-        return g.cur.execute("SELECT * FROM classes WHERE id=?", [classid]).fetchone()
+        data = g.cur.execute("SELECT * FROM classes WHERE id=?", [classid]).fetchone()
+        return data
 
     @staticmethod
     def getCompletionPercentage(classid):

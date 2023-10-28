@@ -1,10 +1,9 @@
 # -*- coding: utf8 -*-
 from __future__ import print_function, generators
-from flask import url_for, render_template, request, request, flash, redirect, abort, Response, current_app, after_this_request
+from flask import url_for, render_template, request, request, flash, redirect, abort, Response, current_app, after_this_request, send_file
 from sociometry import app, redirect_url, models as m, exports as e
 from sqlite3 import IntegrityError
 from werkzeug.datastructures import Headers
-
 
 @app.route("/")
 def index():
@@ -246,18 +245,8 @@ def export_class(classid):
         flash(u"Tato třída ještě není uzavřená, nelze ji exportovat", "danger")
         return redirect(url_for("view_class", classid=classid))
     export = e.ClassExporter(classid, current_app.config["ALLOW_B3"])
-    response = Response(export.export())
-    response.headers = Headers({
-            'Pragma': "public",  # required,
-            'Expires': '0',
-            'Cache-Control': 'must-revalidate, post-check=0, pre-check=0',
-            'Cache-Control': 'private',  # required for certain browsers,
-            'Content-Type': "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            'Content-Disposition': 'attachment; filename=\"{}\";'.format(export.filename),
-            'Content-Transfer-Encoding': 'binary',
-            'Content-Length': len(response.data)
-    })
-    return response
+    export.export()
+    return send_file(export.file, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",download_name=export.filename, as_attachment=True)
 
 
 @app.route("/get/png/<key>")
@@ -278,12 +267,12 @@ def get_png(key):
 
 @app.route("/sociometry-shutdown")
 def shutdown():
-    @after_this_request
-    def shutdown_server(response):
-        func = request.environ.get('werkzeug.server.shutdown')
-        print(func)
-        if func is None:
-            raise RuntimeError('Not running with the Werkzeug Server')
-        func()
-        return response
-    return render_template("shutdown.html")
+    response = Response(render_template("shutdown.html"))
+    @response.call_on_close
+    def shutdown_server():
+        import os
+        import signal
+        import time
+        time.sleep(3)
+        os.kill(os.getpid(), signal.SIGINT)
+    return response
